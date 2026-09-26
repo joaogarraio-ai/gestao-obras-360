@@ -1,0 +1,19 @@
+{
+  "name": "Obra 360 - Gestão de Obras",
+  "short_name": "Obra 360",
+  "description": "Controle de dias de trabalhadores, materiais e despesas de obra",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "background_color": "#f3f4f2",
+  "theme_color": "#b45309",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
