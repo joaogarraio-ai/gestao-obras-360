@@ -56,6 +56,19 @@ export interface Despesa {
   valor: number
 }
 
+/** Pagamento fixo por serviço/tarefa (empreitada), diferente da diária por dia trabalhado. */
+export interface PagamentoTarefa {
+  id: string
+  data: string // yyyy-mm-dd
+  trabalhadorId?: string // preenchido se for alguém já cadastrado
+  nomeAvulso?: string // preenchido se for alguém não cadastrado (ajudante avulso)
+  obraId: string
+  descricao: string
+  valor: number
+  formaPagamento: FormaPagamento
+  chavePix?: string
+}
+
 export interface Database {
   trabalhadores: Trabalhador[]
   obras: Obra[]
@@ -63,6 +76,7 @@ export interface Database {
   registrosDia: RegistroDia[]
   comprasMaterial: CompraMaterial[]
   despesas: Despesa[]
+  pagamentosTarefa: PagamentoTarefa[]
 }
 
 export const FUNCOES_SUGERIDAS = [

@@ -2,8 +2,16 @@ import { isBetween } from './dates'
 import { STATUS_DIA_FRACAO } from './types'
 import type { Database, FormaPagamento } from './types'
 
+export interface LinhaTarefa {
+  data: string
+  obraNome: string
+  descricao: string
+  valor: number
+}
+
 export interface LinhaPagamentoTrabalhador {
-  trabalhadorId: string
+  chave: string
+  trabalhadorId?: string
   nome: string
   funcao: string
   formaPagamento: FormaPagamento
@@ -13,6 +21,9 @@ export interface LinhaPagamentoTrabalhador {
   faltas: number
   totalDias: number
   valorDiaria: number
+  valorDias: number
+  tarefas: LinhaTarefa[]
+  valorTarefas: number
   valorTotal: number
   obras: string[]
 }
@@ -56,33 +67,78 @@ export function gerarRelatorioSemanal(db: Database, start: string, end: string):
   const obraNome = (id: string) => db.obras.find((o) => o.id === id)?.nome ?? '—'
   const fornecedorNome = (id: string) => db.fornecedores.find((f) => f.id === id)?.nome ?? '—'
 
-  const pagamentos: LinhaPagamentoTrabalhador[] = db.trabalhadores
-    .map((trab) => {
-      const registros = db.registrosDia.filter(
-        (r) => r.trabalhadorId === trab.id && isBetween(r.data, start, end),
-      )
-      const diasCompletos = registros.filter((r) => r.status === 'dia_completo').length
-      const meiosDias = registros.filter((r) => r.status === 'meio_dia').length
-      const faltas = registros.filter((r) => r.status === 'falta').length
-      const totalDias = registros.reduce((acc, r) => acc + STATUS_DIA_FRACAO[r.status], 0)
-      const obrasSet = new Set(registros.filter((r) => r.status !== 'falta').map((r) => obraNome(r.obraId)))
+  const porChave = new Map<string, LinhaPagamentoTrabalhador>()
 
-      return {
-        trabalhadorId: trab.id,
-        nome: trab.nome,
-        funcao: trab.funcao,
-        formaPagamento: trab.formaPagamento,
-        chavePix: trab.chavePix,
-        diasCompletos,
-        meiosDias,
-        faltas,
-        totalDias,
-        valorDiaria: trab.valorDiaria,
-        valorTotal: totalDias * trab.valorDiaria,
-        obras: Array.from(obrasSet),
-      }
+  for (const trab of db.trabalhadores) {
+    const registros = db.registrosDia.filter((r) => r.trabalhadorId === trab.id && isBetween(r.data, start, end))
+    const diasCompletos = registros.filter((r) => r.status === 'dia_completo').length
+    const meiosDias = registros.filter((r) => r.status === 'meio_dia').length
+    const faltas = registros.filter((r) => r.status === 'falta').length
+    const totalDias = registros.reduce((acc, r) => acc + STATUS_DIA_FRACAO[r.status], 0)
+    const valorDias = totalDias * trab.valorDiaria
+    const obrasSet = new Set(registros.filter((r) => r.status !== 'falta').map((r) => obraNome(r.obraId)))
+
+    porChave.set(trab.id, {
+      chave: trab.id,
+      trabalhadorId: trab.id,
+      nome: trab.nome,
+      funcao: trab.funcao,
+      formaPagamento: trab.formaPagamento,
+      chavePix: trab.chavePix,
+      diasCompletos,
+      meiosDias,
+      faltas,
+      totalDias,
+      valorDiaria: trab.valorDiaria,
+      valorDias,
+      tarefas: [],
+      valorTarefas: 0,
+      valorTotal: valorDias,
+      obras: Array.from(obrasSet),
     })
-    .filter((linha) => linha.totalDias > 0)
+  }
+
+  const tarefasNaSemana = db.pagamentosTarefa.filter((p) => isBetween(p.data, start, end))
+  for (const tarefa of tarefasNaSemana) {
+    const trab = tarefa.trabalhadorId ? db.trabalhadores.find((t) => t.id === tarefa.trabalhadorId) : undefined
+    const chave = tarefa.trabalhadorId ?? `avulso:${tarefa.nomeAvulso ?? '—'}`
+    const linhaTarefa: LinhaTarefa = {
+      data: tarefa.data,
+      obraNome: obraNome(tarefa.obraId),
+      descricao: tarefa.descricao,
+      valor: tarefa.valor,
+    }
+
+    const existente = porChave.get(chave)
+    if (existente) {
+      existente.tarefas.push(linhaTarefa)
+      existente.valorTarefas += tarefa.valor
+      existente.valorTotal += tarefa.valor
+      existente.obras = Array.from(new Set([...existente.obras, linhaTarefa.obraNome]))
+    } else {
+      porChave.set(chave, {
+        chave,
+        trabalhadorId: tarefa.trabalhadorId,
+        nome: trab?.nome ?? tarefa.nomeAvulso ?? '—',
+        funcao: trab?.funcao ?? 'Avulso (tarefa)',
+        formaPagamento: trab?.formaPagamento ?? tarefa.formaPagamento,
+        chavePix: trab?.chavePix ?? tarefa.chavePix,
+        diasCompletos: 0,
+        meiosDias: 0,
+        faltas: 0,
+        totalDias: 0,
+        valorDiaria: trab?.valorDiaria ?? 0,
+        valorDias: 0,
+        tarefas: [linhaTarefa],
+        valorTarefas: tarefa.valor,
+        valorTotal: tarefa.valor,
+        obras: [linhaTarefa.obraNome],
+      })
+    }
+  }
+
+  const pagamentos: LinhaPagamentoTrabalhador[] = Array.from(porChave.values())
+    .filter((linha) => linha.totalDias > 0 || linha.valorTarefas > 0)
     .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'))
 
   const totalPix = pagamentos.filter((p) => p.formaPagamento === 'pix').reduce((acc, p) => acc + p.valorTotal, 0)

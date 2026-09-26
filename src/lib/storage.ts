@@ -9,7 +9,7 @@ function seedDatabase(): Database {
     { nome: 'Canteiro de Obras', cidade: 'Coração de Maria' },
     { nome: 'Gabriel Material de Construção', cidade: '' },
     { nome: 'Outlet das Tintas', cidade: 'Conceição do Jacuípe' },
-    { nome: 'Cerqueira Alves', cidade: 'Feira de Santana' },
+    { nome: 'Cerqueira Alves', cidade: 'Coração de Maria' },
   ]
 
   return {
@@ -24,6 +24,7 @@ function seedDatabase(): Database {
     registrosDia: [],
     comprasMaterial: [],
     despesas: [],
+    pagamentosTarefa: [],
   }
 }
 
@@ -43,6 +44,7 @@ export function loadDatabase(): Database {
       registrosDia: parsed.registrosDia ?? [],
       comprasMaterial: parsed.comprasMaterial ?? [],
       despesas: parsed.despesas ?? [],
+      pagamentosTarefa: parsed.pagamentosTarefa ?? [],
     }
   } catch {
     return seedDatabase()

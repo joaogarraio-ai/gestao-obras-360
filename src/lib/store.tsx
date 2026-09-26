@@ -7,6 +7,7 @@ import type {
   Despesa,
   Fornecedor,
   Obra,
+  PagamentoTarefa,
   RegistroDia,
   Trabalhador,
 } from './types'
@@ -35,6 +36,10 @@ interface StoreValue {
   addDespesa: (d: Omit<Despesa, 'id'>) => Despesa
   updateDespesa: (id: string, patch: Partial<Omit<Despesa, 'id'>>) => void
   removeDespesa: (id: string) => void
+
+  addPagamentoTarefa: (p: Omit<PagamentoTarefa, 'id'>) => PagamentoTarefa
+  updatePagamentoTarefa: (id: string, patch: Partial<Omit<PagamentoTarefa, 'id'>>) => void
+  removePagamentoTarefa: (id: string) => void
 }
 
 const StoreContext = createContext<StoreValue | null>(null)
@@ -147,6 +152,23 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setDb((prev) => ({ ...prev, despesas: prev.despesas.filter((d) => d.id !== id) }))
   }, [])
 
+  const addPagamentoTarefa = useCallback((p: Omit<PagamentoTarefa, 'id'>) => {
+    const novo: PagamentoTarefa = { ...p, id: generateId() }
+    setDb((prev) => ({ ...prev, pagamentosTarefa: [...prev.pagamentosTarefa, novo] }))
+    return novo
+  }, [])
+
+  const updatePagamentoTarefa = useCallback((id: string, patch: Partial<Omit<PagamentoTarefa, 'id'>>) => {
+    setDb((prev) => ({
+      ...prev,
+      pagamentosTarefa: prev.pagamentosTarefa.map((p) => (p.id === id ? { ...p, ...patch } : p)),
+    }))
+  }, [])
+
+  const removePagamentoTarefa = useCallback((id: string) => {
+    setDb((prev) => ({ ...prev, pagamentosTarefa: prev.pagamentosTarefa.filter((p) => p.id !== id) }))
+  }, [])
+
   const value = useMemo<StoreValue>(
     () => ({
       db,
@@ -167,6 +189,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       addDespesa,
       updateDespesa,
       removeDespesa,
+      addPagamentoTarefa,
+      updatePagamentoTarefa,
+      removePagamentoTarefa,
     }),
     [
       db,
@@ -187,6 +212,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       addDespesa,
       updateDespesa,
       removeDespesa,
+      addPagamentoTarefa,
+      updatePagamentoTarefa,
+      removePagamentoTarefa,
     ],
   )
 

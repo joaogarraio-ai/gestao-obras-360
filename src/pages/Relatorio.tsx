@@ -14,13 +14,19 @@ function montarTextoResumo(rel: ReturnType<typeof gerarRelatorioSemanal>): strin
     linhas.push('*Pagamento dos trabalhadores*')
     const pix = rel.pagamentos.filter((p) => p.formaPagamento === 'pix')
     const dinheiro = rel.pagamentos.filter((p) => p.formaPagamento === 'dinheiro')
+    const linhaTexto = (p: (typeof rel.pagamentos)[number]) => {
+      const partes: string[] = []
+      if (p.totalDias > 0) partes.push(`${p.totalDias}d`)
+      if (p.tarefas.length > 0) partes.push(`${p.tarefas.length} tarefa(s)`)
+      return `- ${p.nome} (${p.funcao}): ${partes.join(' + ')} = ${formatBRL(p.valorTotal)}`
+    }
     if (pix.length) {
       linhas.push('_PIX:_')
-      pix.forEach((p) => linhas.push(`- ${p.nome} (${p.funcao}): ${p.totalDias}d = ${formatBRL(p.valorTotal)}`))
+      pix.forEach((p) => linhas.push(linhaTexto(p)))
     }
     if (dinheiro.length) {
       linhas.push('_Dinheiro:_')
-      dinheiro.forEach((p) => linhas.push(`- ${p.nome} (${p.funcao}): ${p.totalDias}d = ${formatBRL(p.valorTotal)}`))
+      dinheiro.forEach((p) => linhas.push(linhaTexto(p)))
     }
     linhas.push(`Total mão de obra: ${formatBRL(rel.totalMaoDeObra)} (PIX ${formatBRL(rel.totalPix)} / Dinheiro ${formatBRL(rel.totalDinheiro)})`)
     linhas.push('')
@@ -119,17 +125,32 @@ export default function Relatorio() {
                 return (
                   <div key={forma}>
                     <p className="text-xs font-semibold text-stone-500 uppercase mb-1.5">{forma === 'pix' ? 'PIX' : 'Dinheiro'}</p>
-                    <div className="space-y-2">
+                    <div className="space-y-2.5">
                       {linhas.map((p) => (
-                        <div key={p.trabalhadorId} className="flex items-center justify-between text-sm gap-2">
-                          <div className="min-w-0">
-                            <p className="font-medium text-stone-800 truncate">{p.nome}</p>
-                            <p className="text-xs text-stone-500 truncate">
-                              {p.funcao} · {p.totalDias}d ({p.diasCompletos} completos, {p.meiosDias} meio-dia)
-                              {p.chavePix ? ` · PIX: ${p.chavePix}` : ''}
-                            </p>
+                        <div key={p.chave} className="text-sm">
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="min-w-0">
+                              <p className="font-medium text-stone-800 truncate">{p.nome}</p>
+                              <p className="text-xs text-stone-500 truncate">
+                                {p.funcao}
+                                {p.totalDias > 0 ? ` · ${p.totalDias}d (${p.diasCompletos} completos, ${p.meiosDias} meio-dia)` : ''}
+                                {p.chavePix ? ` · PIX: ${p.chavePix}` : ''}
+                              </p>
+                            </div>
+                            <p className="font-semibold text-stone-800 whitespace-nowrap">{formatBRL(p.valorTotal)}</p>
                           </div>
-                          <p className="font-semibold text-stone-800 whitespace-nowrap">{formatBRL(p.valorTotal)}</p>
+                          {p.tarefas.length > 0 && (
+                            <div className="mt-1 pl-2 space-y-0.5">
+                              {p.tarefas.map((t, i) => (
+                                <div key={i} className="flex justify-between text-xs text-stone-500">
+                                  <span className="truncate pr-2">
+                                    {formatDatePt(t.data)} · {t.descricao} ({t.obraNome})
+                                  </span>
+                                  <span className="whitespace-nowrap">{formatBRL(t.valor)}</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       ))}
                     </div>
