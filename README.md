@@ -1,5 +1,7 @@
 # Obra 360 - Gestão de Obras
 
+🔗 **App:** https://joaogarraio-ai.github.io/gestao-obras-360/
+
 Sistema simples para controlar, no celular, tudo que hoje é anotado no papel:
 
 - **Dias trabalhados** de cada trabalhador (servente, pedreiro, mestre de obra...), por obra e por dia da semana, considerando o horário 07:00–12:00 e 13:00–17:00.
@@ -21,7 +23,11 @@ Todos os dados ficam salvos no próprio celular/navegador (localStorage), sem pr
 
 ## Instalar no celular
 
-Abra o link do app no navegador do celular e use a opção "Adicionar à tela inicial" (Chrome/Safari). Ele passa a abrir como um aplicativo normal.
+Abra https://joaogarraio-ai.github.io/gestao-obras-360/ no navegador do celular e use a opção "Adicionar à tela inicial" (Chrome/Safari). Ele passa a abrir como um aplicativo normal.
+
+## Publicação (GitHub Pages)
+
+Todo push na branch `main` publica automaticamente em https://joaogarraio-ai.github.io/gestao-obras-360/ via GitHub Actions (`.github/workflows/deploy.yml`). Na primeira vez, é preciso habilitar em **Settings > Pages > Build and deployment > Source: GitHub Actions** no repositório.
 
 ## Desenvolvimento
 

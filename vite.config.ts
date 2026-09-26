@@ -4,7 +4,8 @@ import { VitePWA } from 'vite-plugin-pwa'
 import { defineConfig } from 'vite'
 
 // https://vite.dev/config/
-export default defineConfig({
+export default defineConfig(({ command }) => ({
+  base: command === 'build' ? '/gestao-obras-360/' : '/',
   plugins: [
     react(),
     tailwindcss(),
@@ -17,4 +18,4 @@ export default defineConfig({
       },
     }),
   ],
-})
+}))
