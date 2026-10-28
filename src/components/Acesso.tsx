@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react'
-import { supabase, type Empresa } from '../lib/supabase'
+import { CAMPOS_EMPRESA, diasRestantes, empresaLiberada, supabase, type Empresa } from '../lib/supabase'
 import { useSync } from '../lib/sync'
 import { Button, Card, Field, Input } from './ui'
 
@@ -99,6 +99,46 @@ function Login() {
   )
 }
 
+function situacaoEmpresa(e: Empresa): string {
+  if (e.bloqueada) return 'Acesso suspenso'
+  const dias = diasRestantes(e)
+  if (dias === null) return 'Entrar'
+  if (!empresaLiberada(e)) return e.plano === 'teste' ? 'Período de teste terminou' : 'Mensalidade vencida'
+  if (e.plano === 'teste') return `Teste grátis · ${dias} dia(s) restante(s)`
+  return 'Entrar'
+}
+
+function AcessoBloqueado({ empresa }: { empresa: Empresa }) {
+  const { trocarEmpresa, sair, session } = useSync()
+  const titulo = empresa.bloqueada
+    ? 'Acesso suspenso'
+    : empresa.plano === 'teste'
+      ? 'Seu período de teste terminou'
+      : 'Sua mensalidade venceu'
+  return (
+    <Tela>
+      <Card className="p-6 space-y-3 shadow-xl shadow-slate-900/5">
+        <h1 className="text-xl font-bold text-slate-900">{titulo}</h1>
+        <p className="text-sm text-slate-600">
+          O acesso da empresa <b>{empresa.nome}</b> ao JotaP Obra 360 está pausado. Os dados das obras continuam guardados e voltam assim que o
+          acesso for liberado.
+        </p>
+        <p className="text-sm text-slate-600">Para assinar ou renovar o plano mensal, fale com a JotaP Entretenimento.</p>
+        <p className="text-xs text-slate-400">Conectado como {session?.user.email}</p>
+        <div className="flex flex-wrap gap-2 pt-1">
+          <Button onClick={() => window.location.reload()}>Já foi liberado</Button>
+          <Button variant="secondary" onClick={trocarEmpresa}>
+            Trocar empresa
+          </Button>
+          <Button variant="ghost" onClick={sair}>
+            Sair
+          </Button>
+        </div>
+      </Card>
+    </Tela>
+  )
+}
+
 function EscolherEmpresa() {
   const { session, escolherEmpresa, sair } = useSync()
   const [empresas, setEmpresas] = useState<Empresa[] | null>(null)
@@ -108,13 +148,14 @@ function EscolherEmpresa() {
   const [carregando, setCarregando] = useState(false)
 
   useEffect(() => {
-    supabase
-      ?.from('empresas')
-      .select('id,nome,codigo_convite')
-      .order('nome')
+    if (!supabase) return
+    const listar = (campos: string) => supabase!.from('empresas').select(campos).order('nome')
+    listar(CAMPOS_EMPRESA)
+      // banco ainda sem as colunas de licença: lista só o básico
+      .then((r) => (r.error ? listar('id,nome,codigo_convite') : r))
       .then(({ data, error }) => {
         if (error) setErro(traduzirErro(error.message))
-        setEmpresas(data ?? [])
+        setEmpresas((data ?? []) as unknown as Empresa[])
       })
   }, [])
 
@@ -141,7 +182,7 @@ function EscolherEmpresa() {
             <button key={e.id} className="block w-full text-left" onClick={() => escolherEmpresa(e)}>
               <Card className="p-4 hover:border-brand-400">
                 <p className="font-semibold text-slate-800">{e.nome}</p>
-                <p className="text-xs text-slate-500">Entrar</p>
+                <p className="text-xs text-slate-500">{situacaoEmpresa(e)}</p>
               </Card>
             </button>
           ))}
@@ -182,15 +223,16 @@ function EscolherEmpresa() {
 
 /** Quando o app está ligado ao Supabase, exige login e empresa antes de mostrar os dados. */
 export default function Acesso({ children }: { children: ReactNode }) {
-  const { configurado, carregandoSessao, session, empresa, pronto, status, ultimoErro, trocarEmpresa } = useSync()
+  const { configurado, carregandoSessao, session, empresa, licenca, pronto, status, ultimoErro, trocarEmpresa } = useSync()
   if (!configurado) return <>{children}</>
   if (carregandoSessao) return <Tela>Carregando…</Tela>
   if (!session) return <Login />
   if (!empresa) return <EscolherEmpresa />
+  if (licenca === 'bloqueada') return <AcessoBloqueado empresa={empresa} />
   if (!pronto) {
     return (
       <Tela>
-        {status === 'carregando' || status === 'enviando' ? (
+        {licenca === 'verificando' || status === 'carregando' || status === 'enviando' ? (
           <p className="text-slate-600">Baixando os dados de {empresa.nome}…</p>
         ) : (
           <div className="space-y-3">
