@@ -1,3 +1,4 @@
+import { Pencil, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { useStore } from '../lib/store'
 import { toISODate, formatDatePt } from '../lib/dates'
@@ -82,7 +83,7 @@ export default function Materiais() {
       {semCadastros && <EmptyState text="Cadastre ao menos um fornecedor e uma obra em Cadastros para lançar compras." />}
 
       {!semCadastros && !mostrarForm && (
-        <Button onClick={iniciarNovo} className="w-full mb-3">
+        <Button onClick={iniciarNovo} className="w-full sm:w-auto mb-3">
           + Nova compra
         </Button>
       )}
@@ -137,8 +138,8 @@ export default function Materiais() {
       {comprasOrdenadas.length === 0 && !mostrarForm && !semCadastros && <EmptyState text="Nenhuma compra lançada ainda." />}
 
       {comprasOrdenadas.length > 0 && (
-        <p className="text-sm text-stone-500 mb-2">
-          Total lançado: <span className="font-semibold text-stone-800">{formatBRL(totalGeral)}</span>
+        <p className="text-sm text-slate-500 mb-2">
+          Total lançado: <span className="font-semibold text-slate-800">{formatBRL(totalGeral)}</span>
         </p>
       )}
 
@@ -146,16 +147,16 @@ export default function Materiais() {
         {comprasOrdenadas.map((c) => (
           <Card key={c.id} className="p-3 flex items-center justify-between gap-2">
             <div className="min-w-0">
-              <p className="font-semibold text-stone-800 truncate">{c.descricao}</p>
-              <p className="text-xs text-stone-500 truncate">
+              <p className="font-semibold text-slate-800 truncate">{c.descricao}</p>
+              <p className="text-xs text-slate-500 truncate">
                 {formatDatePt(c.data)} · {nomeFornecedor(c.fornecedorId)} · {nomeObra(c.obraId)}
                 {c.numeroNota ? ` · NF ${c.numeroNota}` : ''}
               </p>
             </div>
             <div className="flex items-center gap-2 shrink-0">
-              <p className="font-semibold text-stone-800 whitespace-nowrap">{formatBRL(c.valor)}</p>
+              <p className="font-semibold text-slate-800 whitespace-nowrap">{formatBRL(c.valor)}</p>
               <Button variant="ghost" onClick={() => iniciarEdicao(c)} className="px-2">
-                ✏️
+                <Pencil className="h-4 w-4" />
               </Button>
               <Button
                 variant="ghost"
@@ -164,7 +165,7 @@ export default function Materiais() {
                 }}
                 className="px-2"
               >
-                🗑️
+                <Trash2 className="h-4 w-4" />
               </Button>
             </div>
           </Card>

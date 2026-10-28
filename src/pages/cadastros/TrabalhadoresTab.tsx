@@ -1,3 +1,4 @@
+import { Pencil, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { useStore } from '../../lib/store'
 import { FUNCOES_SUGERIDAS, type FormaPagamento, type Trabalhador } from '../../lib/types'
@@ -61,7 +62,7 @@ export default function TrabalhadoresTab() {
   return (
     <div className="space-y-3">
       {!mostrarForm && (
-        <Button onClick={iniciarNovo} className="w-full">
+        <Button onClick={iniciarNovo} className="w-full sm:w-auto">
           + Novo trabalhador
         </Button>
       )}
@@ -123,14 +124,14 @@ export default function TrabalhadoresTab() {
         {db.trabalhadores.map((t) => (
           <Card key={t.id} className="p-3 flex items-center justify-between gap-2">
             <div className="min-w-0">
-              <p className="font-semibold text-stone-800 truncate">{t.nome}</p>
-              <p className="text-xs text-stone-500">
+              <p className="font-semibold text-slate-800 truncate">{t.nome}</p>
+              <p className="text-xs text-slate-500">
                 {t.funcao} · {formatBRL(t.valorDiaria)}/dia · {t.formaPagamento === 'pix' ? 'PIX' : 'Dinheiro'}
               </p>
             </div>
             <div className="flex gap-1 shrink-0">
               <Button variant="ghost" onClick={() => iniciarEdicao(t)} className="px-2">
-                ✏️
+                <Pencil className="h-4 w-4" />
               </Button>
               <Button
                 variant="ghost"
@@ -139,7 +140,7 @@ export default function TrabalhadoresTab() {
                 }}
                 className="px-2"
               >
-                🗑️
+                <Trash2 className="h-4 w-4" />
               </Button>
             </div>
           </Card>

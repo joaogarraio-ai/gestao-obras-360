@@ -5,12 +5,13 @@ import { Button, Card, Field, Input } from './ui'
 
 function Tela({ children }: { children: ReactNode }) {
   return (
-    <div className="min-h-screen bg-stone-50 flex flex-col">
-      <header className="bg-amber-800 text-white px-4 py-3 flex items-center gap-2">
-        <span className="text-xl">👷</span>
-        <span className="font-bold text-lg">Obra 360</span>
-      </header>
-      <main className="flex-1 px-4 py-6 max-w-md w-full mx-auto">{children}</main>
+    <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,_#dbe6fe,_#f6f7fb_55%)] flex flex-col items-center px-4 py-10 sm:py-16">
+      <div className="flex items-center gap-2.5 mb-8">
+        <img src={`${import.meta.env.BASE_URL}icon.svg`} alt="" className="h-10 w-10 rounded-xl shadow-lg shadow-brand-600/20" />
+        <span className="text-xl font-semibold tracking-tight text-slate-900">Obra 360</span>
+      </div>
+      <main className="w-full max-w-md">{children}</main>
+      <p className="mt-10 text-center text-xs text-slate-400">Gestão de obras · orçamento, cronograma, compras e financeiro</p>
     </div>
   )
 }
@@ -61,9 +62,9 @@ function Login() {
 
   return (
     <Tela>
-      <h1 className="text-xl font-bold text-stone-900 mb-1">{modo === 'entrar' ? 'Entrar' : 'Criar conta'}</h1>
-      <p className="text-sm text-stone-500 mb-4">Os dados das obras ficam guardados na nuvem e são compartilhados com a sua equipe.</p>
-      <Card className="p-4 space-y-3">
+      <h1 className="text-xl font-bold text-slate-900 mb-1">{modo === 'entrar' ? 'Entrar' : 'Criar conta'}</h1>
+      <p className="text-sm text-slate-500 mb-4">Os dados das obras ficam guardados na nuvem e são compartilhados com a sua equipe.</p>
+      <Card className="p-6 space-y-4 shadow-xl shadow-slate-900/5">
         <Field label="E-mail">
           <Input type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} />
         </Field>
@@ -81,11 +82,11 @@ function Login() {
           {carregando ? 'Aguarde…' : modo === 'entrar' ? 'Entrar' : 'Criar conta'}
         </Button>
         <div className="flex justify-between text-sm">
-          <button className="text-amber-700" onClick={() => setModo(modo === 'entrar' ? 'criar' : 'entrar')}>
+          <button className="text-brand-700" onClick={() => setModo(modo === 'entrar' ? 'criar' : 'entrar')}>
             {modo === 'entrar' ? 'Criar uma conta' : 'Já tenho conta'}
           </button>
           {modo === 'entrar' && (
-            <button className="text-stone-500" onClick={esqueciSenha}>
+            <button className="text-slate-500" onClick={esqueciSenha}>
               Esqueci a senha
             </button>
           )}
@@ -126,18 +127,18 @@ function EscolherEmpresa() {
 
   return (
     <Tela>
-      <h1 className="text-xl font-bold text-stone-900 mb-1">Sua empresa</h1>
-      <p className="text-sm text-stone-500 mb-4">Conectado como {session?.user.email}. Todos da mesma empresa veem e lançam nas mesmas obras.</p>
+      <h1 className="text-xl font-bold text-slate-900 mb-1">Sua empresa</h1>
+      <p className="text-sm text-slate-500 mb-4">Conectado como {session?.user.email}. Todos da mesma empresa veem e lançam nas mesmas obras.</p>
 
-      {empresas === null && <p className="text-sm text-stone-500">Carregando…</p>}
+      {empresas === null && <p className="text-sm text-slate-500">Carregando…</p>}
 
       {empresas && empresas.length > 0 && (
         <div className="space-y-2 mb-4">
           {empresas.map((e) => (
             <button key={e.id} className="block w-full text-left" onClick={() => escolherEmpresa(e)}>
-              <Card className="p-4 hover:border-amber-400">
-                <p className="font-semibold text-stone-800">{e.nome}</p>
-                <p className="text-xs text-stone-500">Entrar</p>
+              <Card className="p-4 hover:border-brand-400">
+                <p className="font-semibold text-slate-800">{e.nome}</p>
+                <p className="text-xs text-slate-500">Entrar</p>
               </Card>
             </button>
           ))}
@@ -164,12 +165,12 @@ function EscolherEmpresa() {
             </Button>
           </div>
         </Field>
-        <p className="text-xs text-stone-500">Ao criar, as obras e lançamentos que já estão neste aparelho são enviados para a empresa.</p>
+        <p className="text-xs text-slate-500">Ao criar, as obras e lançamentos que já estão neste aparelho são enviados para a empresa.</p>
       </Card>
 
       {erro && <p className="text-sm text-red-600 mt-3">{erro}</p>}
 
-      <button className="block mx-auto mt-6 text-sm text-stone-500" onClick={sair}>
+      <button className="block mx-auto mt-6 text-sm text-slate-500" onClick={sair}>
         Sair da conta
       </button>
     </Tela>
@@ -187,7 +188,7 @@ export default function Acesso({ children }: { children: ReactNode }) {
     return (
       <Tela>
         {status === 'carregando' || status === 'enviando' ? (
-          <p className="text-stone-600">Baixando os dados de {empresa.nome}…</p>
+          <p className="text-slate-600">Baixando os dados de {empresa.nome}…</p>
         ) : (
           <div className="space-y-3">
             <p className="text-red-600">Não foi possível carregar os dados da empresa{ultimoErro ? `: ${traduzirErro(ultimoErro)}` : '.'}</p>

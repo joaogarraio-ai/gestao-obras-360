@@ -1,3 +1,4 @@
+import { Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { useStore } from '../../lib/store'
 import { calcularBDI, curvaABC, etapasDaObra, formatPercent, itensDaObra, totalItem } from '../../lib/gestao'
@@ -117,18 +118,18 @@ export default function OrcamentoTab({ obra }: { obra: Obra }) {
 
   return (
     <div>
-      <Card className="p-4 mb-3 bg-amber-800 text-white border-amber-800">
+      <Card className="p-4 mb-3 bg-brand-800 text-white border-brand-800">
         <div className="grid grid-cols-3 gap-2 text-sm">
           <div>
-            <p className="text-amber-100 text-xs">Custo direto</p>
+            <p className="text-brand-100 text-xs">Custo direto</p>
             <p className="font-bold">{formatBRL(custoDireto)}</p>
           </div>
           <div>
-            <p className="text-amber-100 text-xs">BDI</p>
+            <p className="text-brand-100 text-xs">BDI</p>
             <p className="font-bold">{formatPercent(bdi, 2)}</p>
           </div>
           <div>
-            <p className="text-amber-100 text-xs">Preço de venda</p>
+            <p className="text-brand-100 text-xs">Preço de venda</p>
             <p className="font-bold">{formatBRL(custoDireto * (1 + bdi))}</p>
           </div>
         </div>
@@ -138,7 +139,7 @@ export default function OrcamentoTab({ obra }: { obra: Obra }) {
 
       {visao === 'bdi' && (
         <Card className="p-4 space-y-3">
-          <p className="text-sm text-stone-600">
+          <p className="text-sm text-slate-600">
             Fórmula do TCU: BDI = ((1 + AC + S + R) × (1 + DF) × (1 + L)) ÷ (1 − T) − 1. Valores em %.
           </p>
           <div className="grid grid-cols-2 gap-2" key={JSON.stringify(bdiComp)}>
@@ -152,7 +153,7 @@ export default function OrcamentoTab({ obra }: { obra: Obra }) {
               </Field>
             ))}
           </div>
-          <p className="font-semibold text-stone-800">BDI resultante: {formatPercent(bdi, 2)}</p>
+          <p className="font-semibold text-slate-800">BDI resultante: {formatPercent(bdi, 2)}</p>
           <Button variant="secondary" onClick={() => updateObra(obra.id, { bdi: BDI_PADRAO })}>
             Voltar ao padrão
           </Button>
@@ -164,8 +165,8 @@ export default function OrcamentoTab({ obra }: { obra: Obra }) {
       {visao === 'planilha' && (
         <div className="space-y-3">
           {mostrarForm && (
-            <Card className="p-4 space-y-3 border-amber-400">
-              <p className="font-semibold text-stone-700">{editandoId ? 'Editar item' : 'Novo item'}</p>
+            <Card className="p-4 space-y-3 border-brand-400">
+              <p className="font-semibold text-slate-700">{editandoId ? 'Editar item' : 'Novo item'}</p>
               <Field label="Etapa">
                 <Select value={form.etapaId} onChange={(e) => setForm({ ...form, etapaId: e.target.value })}>
                   {etapas.map((e) => (
@@ -205,7 +206,7 @@ export default function OrcamentoTab({ obra }: { obra: Obra }) {
                   <Input value={form.custoUnitario} onChange={(e) => setForm({ ...form, custoUnitario: e.target.value })} inputMode="decimal" />
                 </Field>
               </div>
-              <p className="text-sm text-stone-600">
+              <p className="text-sm text-slate-600">
                 Total: {formatBRL(parseMoneyInput(form.quantidade) * parseMoneyInput(form.custoUnitario))} · com BDI{' '}
                 {formatBRL(parseMoneyInput(form.quantidade) * parseMoneyInput(form.custoUnitario) * (1 + bdi))}
               </p>
@@ -228,33 +229,33 @@ export default function OrcamentoTab({ obra }: { obra: Obra }) {
             return (
               <Card key={e.id} className="p-3">
                 <div className="flex items-center justify-between gap-2 mb-2">
-                  <p className="font-semibold text-stone-800">
+                  <p className="font-semibold text-slate-800">
                     {idx + 1}. {e.nome}
                   </p>
                   <div className="flex items-center gap-1 shrink-0">
-                    <span className="text-sm font-semibold text-stone-700">{formatBRL(totalEtapa * (1 + bdi))}</span>
+                    <span className="text-sm font-semibold text-slate-700">{formatBRL(totalEtapa * (1 + bdi))}</span>
                     <Button variant="ghost" className="px-2" onClick={() => removerEtapa(e.id, e.nome)}>
-                      🗑️
+                      <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
-                <div className="divide-y divide-stone-100">
+                <div className="divide-y divide-slate-100">
                   {itensEtapa.map((i, j) => (
                     <div key={i.id} className="py-2 flex items-center justify-between gap-2 text-sm">
                       <button className="min-w-0 text-left" onClick={() => editarItem(i)}>
-                        <p className="text-stone-800 truncate">
-                          <span className="text-stone-400">
+                        <p className="text-slate-800 truncate">
+                          <span className="text-slate-400">
                             {idx + 1}.{j + 1}
                           </span>{' '}
                           {i.descricao}
                         </p>
-                        <p className="text-xs text-stone-500">
+                        <p className="text-xs text-slate-500">
                           {i.codigo ? `${i.codigo} · ` : ''}
                           {formatNumero(i.quantidade)} {i.unidade} × {formatBRL(i.custoUnitario)} · {CATEGORIA_LABEL[i.categoria]}
                         </p>
                       </button>
                       <div className="flex items-center shrink-0">
-                        <span className="whitespace-nowrap text-stone-700">{formatBRL(totalItem(i))}</span>
+                        <span className="whitespace-nowrap text-slate-700">{formatBRL(totalItem(i))}</span>
                         <Button
                           variant="ghost"
                           className="px-2"
@@ -268,7 +269,7 @@ export default function OrcamentoTab({ obra }: { obra: Obra }) {
                     </div>
                   ))}
                 </div>
-                <Button variant="ghost" className="w-full mt-1 text-amber-700" onClick={() => novoItem(e.id)}>
+                <Button variant="ghost" className="w-full mt-1 text-brand-700" onClick={() => novoItem(e.id)}>
                   + Item
                 </Button>
               </Card>
@@ -301,16 +302,16 @@ function CurvaABC({ itens, bdi }: { itens: ItemOrcamento[]; bdi: number }) {
         {resumo.map((r) => (
           <Card key={r.classe} className="p-3">
             <Badge tone={tone[r.classe]}>Classe {r.classe}</Badge>
-            <p className="text-sm font-bold text-stone-800 mt-1">{formatBRL(r.total * (1 + bdi))}</p>
-            <p className="text-xs text-stone-500">{r.qtd} itens</p>
+            <p className="text-sm font-bold text-slate-800 mt-1">{formatBRL(r.total * (1 + bdi))}</p>
+            <p className="text-xs text-slate-500">{r.qtd} itens</p>
           </Card>
         ))}
       </div>
-      <p className="text-xs text-stone-500">Classe A: itens que somam até 80% do custo, onde vale negociar mais. B: até 95%. C: o restante.</p>
+      <p className="text-xs text-slate-500">Classe A: itens que somam até 80% do custo, onde vale negociar mais. B: até 95%. C: o restante.</p>
       <Card className="p-3 overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="text-left text-xs text-stone-500">
+            <tr className="text-left text-xs text-slate-500">
               <th className="py-1 pr-2">Item</th>
               <th className="py-1 pr-2 text-right">Total</th>
               <th className="py-1 pr-2 text-right">%</th>
@@ -320,8 +321,8 @@ function CurvaABC({ itens, bdi }: { itens: ItemOrcamento[]; bdi: number }) {
           </thead>
           <tbody>
             {linhas.map((l) => (
-              <tr key={l.item.id} className="border-t border-stone-100">
-                <td className="py-1.5 pr-2 text-stone-800">{l.item.descricao}</td>
+              <tr key={l.item.id} className="border-t border-slate-100">
+                <td className="py-1.5 pr-2 text-slate-800">{l.item.descricao}</td>
                 <td className="py-1.5 pr-2 text-right whitespace-nowrap">{formatBRL(l.total)}</td>
                 <td className="py-1.5 pr-2 text-right">{formatPercent(l.percentual)}</td>
                 <td className="py-1.5 pr-2 text-right">{formatPercent(l.acumulado)}</td>

@@ -55,7 +55,7 @@ export default function ResumoTab({ obra }: { obra: Obra }) {
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <Stat label="Valor do contrato" value={obra.valorContrato ? formatBRL(obra.valorContrato) : '—'} hint={`Recebido ${formatBRL(recebido)}`} />
         <Stat label="Orçamento (com BDI)" value={formatBRL(precoVenda)} hint={`Custo direto ${formatBRL(custoDireto)} · BDI ${formatPercent(bdi)}`} />
         <Stat
@@ -72,8 +72,8 @@ export default function ResumoTab({ obra }: { obra: Obra }) {
 
       <Card className="p-4">
         <div className="flex justify-between text-sm mb-1">
-          <span className="font-semibold text-stone-700">Avanço físico</span>
-          <span className="text-stone-600">
+          <span className="font-semibold text-slate-700">Avanço físico</span>
+          <span className="text-slate-600">
             Real {formatPercent(avanco, 0)} · Previsto {formatPercent(previsto, 0)}
           </span>
         </div>
@@ -85,7 +85,7 @@ export default function ResumoTab({ obra }: { obra: Obra }) {
       </Card>
 
       <Card className="p-4">
-        <p className="font-semibold text-stone-700 mb-3">Orçado x realizado (custo direto)</p>
+        <p className="font-semibold text-slate-700 mb-3">Orçado x realizado (custo direto)</p>
         <div className="space-y-3">
           {comparativo
             .filter((c) => c.orcado > 0 || c.realizado > 0)
@@ -94,8 +94,8 @@ export default function ResumoTab({ obra }: { obra: Obra }) {
               return (
                 <div key={c.categoria}>
                   <div className="flex justify-between text-sm">
-                    <span className="text-stone-700">{CATEGORIA_REALIZADO_LABEL[c.categoria]}</span>
-                    <span className={estourou ? 'text-red-600 font-semibold' : 'text-stone-600'}>
+                    <span className="text-slate-700">{CATEGORIA_REALIZADO_LABEL[c.categoria]}</span>
+                    <span className={estourou ? 'text-red-600 font-semibold' : 'text-slate-600'}>
                       {formatBRL(c.realizado)} / {formatBRL(c.orcado)}
                     </span>
                   </div>
@@ -104,17 +104,17 @@ export default function ResumoTab({ obra }: { obra: Obra }) {
               )
             })}
           {comparativo.every((c) => c.orcado === 0 && c.realizado === 0) && (
-            <p className="text-sm text-stone-400">Monte o orçamento e lance os gastos para ver a comparação.</p>
+            <p className="text-sm text-slate-400">Monte o orçamento e lance os gastos para ver a comparação.</p>
           )}
         </div>
       </Card>
 
       {etapas.length > 0 && (
         <Card className="p-4 overflow-x-auto">
-          <p className="font-semibold text-stone-700 mb-2">Por etapa</p>
+          <p className="font-semibold text-slate-700 mb-2">Por etapa</p>
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-left text-xs text-stone-500">
+              <tr className="text-left text-xs text-slate-500">
                 <th className="py-1 pr-2">Etapa</th>
                 <th className="py-1 pr-2 text-right">Orçado</th>
                 <th className="py-1 pr-2 text-right">Realizado*</th>
@@ -126,8 +126,8 @@ export default function ResumoTab({ obra }: { obra: Obra }) {
                 const orc = custoDiretoEtapa(db, e.id)
                 const real = realizadoPorEtapa(db, e.id)
                 return (
-                  <tr key={e.id} className="border-t border-stone-100">
-                    <td className="py-1.5 pr-2 text-stone-800">{e.nome}</td>
+                  <tr key={e.id} className="border-t border-slate-100">
+                    <td className="py-1.5 pr-2 text-slate-800">{e.nome}</td>
                     <td className="py-1.5 pr-2 text-right whitespace-nowrap">{formatBRL(orc)}</td>
                     <td className={`py-1.5 pr-2 text-right whitespace-nowrap ${real > orc && orc > 0 ? 'text-red-600' : ''}`}>{formatBRL(real)}</td>
                     <td className="py-1.5 text-right">{e.percentualConcluido}%</td>
@@ -136,15 +136,15 @@ export default function ResumoTab({ obra }: { obra: Obra }) {
               })}
             </tbody>
           </table>
-          <p className="text-xs text-stone-400 mt-2">* Somente compras e contratos vinculados à etapa.</p>
+          <p className="text-xs text-slate-400 mt-2">* Somente compras e contratos vinculados à etapa.</p>
         </Card>
       )}
 
       <Card className="p-4">
         {!editando ? (
           <div className="flex items-center justify-between">
-            <div className="text-sm text-stone-600">
-              <p className="font-semibold text-stone-700">Dados da obra</p>
+            <div className="text-sm text-slate-600">
+              <p className="font-semibold text-slate-700">Dados da obra</p>
               <p>
                 {obra.dataInicio ? new Date(obra.dataInicio + 'T12:00').toLocaleDateString('pt-BR') : 'Sem início'} até{' '}
                 {obra.dataFim ? new Date(obra.dataFim + 'T12:00').toLocaleDateString('pt-BR') : 'sem término'}

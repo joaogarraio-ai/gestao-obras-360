@@ -8,7 +8,7 @@ import { Button, Card, EmptyState, Select } from '../../components/ui'
 const CICLO: (StatusDia | null)[] = [null, 'dia_completo', 'meio_dia', 'falta']
 
 const CELULA_ESTILO: Record<string, string> = {
-  vazio: 'bg-stone-50 text-stone-300 border-stone-200',
+  vazio: 'bg-slate-50 text-slate-300 border-slate-200',
   dia_completo: 'bg-green-600 text-white border-green-600',
   meio_dia: 'bg-amber-400 text-white border-amber-400',
   falta: 'bg-red-500 text-white border-red-500',
@@ -68,10 +68,10 @@ export default function DiariaTab() {
             ◀
           </Button>
           <div className="text-center flex-1">
-            <p className="font-semibold text-stone-800 text-sm">
+            <p className="font-semibold text-slate-800 text-sm">
               {formatDateShortPt(days[0])} – {formatDateShortPt(days[days.length - 1])}
             </p>
-            <button className="text-xs text-amber-700 underline" onClick={() => setMondayIso(getMondayOfWeek())}>
+            <button className="text-xs text-brand-700 underline" onClick={() => setMondayIso(getMondayOfWeek())}>
               ir para semana atual
             </button>
           </div>
@@ -99,24 +99,24 @@ export default function DiariaTab() {
           <table className="w-full text-sm border-collapse">
             <thead>
               <tr>
-                <th className="text-left text-xs font-medium text-stone-500 pb-2 sticky left-0 bg-white">Trabalhador</th>
+                <th className="text-left text-xs font-medium text-slate-500 pb-2 sticky left-0 bg-white">Trabalhador</th>
                 {days.map((d) => (
-                  <th key={d} className="text-center text-xs font-medium text-stone-500 pb-2 px-0.5">
+                  <th key={d} className="text-center text-xs font-medium text-slate-500 pb-2 px-0.5">
                     <div>{weekdayLabel(d, true)}</div>
-                    <div className="text-stone-400">{formatDateShortPt(d)}</div>
+                    <div className="text-slate-400">{formatDateShortPt(d)}</div>
                   </th>
                 ))}
-                <th className="text-right text-xs font-medium text-stone-500 pb-2 pl-2">Total</th>
+                <th className="text-right text-xs font-medium text-slate-500 pb-2 pl-2">Total</th>
               </tr>
             </thead>
             <tbody>
               {trabalhadoresAtivos.map((t) => {
                 const { dias, valor } = totalSemana(t.id)
                 return (
-                  <tr key={t.id} className="border-t border-stone-100">
+                  <tr key={t.id} className="border-t border-slate-100">
                     <td className="py-2 pr-2 sticky left-0 bg-white">
-                      <p className="font-medium text-stone-800 truncate max-w-[110px]">{t.nome}</p>
-                      <p className="text-[11px] text-stone-400 truncate max-w-[110px]">{t.funcao}</p>
+                      <p className="font-medium text-slate-800 truncate max-w-[110px]">{t.nome}</p>
+                      <p className="text-[11px] text-slate-400 truncate max-w-[110px]">{t.funcao}</p>
                     </td>
                     {days.map((d) => {
                       const r = registroDe(t.id, d)
@@ -131,15 +131,15 @@ export default function DiariaTab() {
                           >
                             {CELULA_TEXTO[status]}
                             {conflito && (
-                              <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-blue-500 border border-white" />
+                              <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-brand-600 border border-white" />
                             )}
                           </button>
                         </td>
                       )
                     })}
                     <td className="text-right pl-2 whitespace-nowrap">
-                      <p className="font-semibold text-stone-800">{dias}d</p>
-                      <p className="text-[11px] text-stone-400">{formatBRL(valor)}</p>
+                      <p className="font-semibold text-slate-800">{dias}d</p>
+                      <p className="text-[11px] text-slate-400">{formatBRL(valor)}</p>
                     </td>
                   </tr>
                 )
@@ -149,13 +149,13 @@ export default function DiariaTab() {
         </Card>
       )}
 
-      <div className="flex items-center gap-3 mt-3 text-xs text-stone-500 flex-wrap">
+      <div className="flex items-center gap-3 mt-3 text-xs text-slate-500 flex-wrap">
         <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-green-600 inline-block" /> Dia completo</span>
         <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-amber-400 inline-block" /> Meio dia</span>
         <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-red-500 inline-block" /> Falta</span>
-        <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-blue-500 inline-block" /> Marcado em outra obra</span>
+        <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-brand-600 inline-block" /> Marcado em outra obra</span>
       </div>
-      {obra && <p className="text-xs text-stone-400 mt-2">Horário considerado: 07:00–12:00 e 13:00–17:00 (8h/dia) na obra {obra.nome}.</p>}
+      {obra && <p className="text-xs text-slate-400 mt-2">Horário considerado: 07:00–12:00 e 13:00–17:00 (8h/dia) na obra {obra.nome}.</p>}
     </div>
   )
 }

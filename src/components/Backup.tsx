@@ -1,3 +1,4 @@
+import { Download, Upload } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { useStore } from '../lib/store'
 import { toISODate } from '../lib/dates'
@@ -45,18 +46,18 @@ export default function Backup() {
 
   return (
     <Card className="p-4 space-y-2">
-      <p className="font-semibold text-stone-700">Backup</p>
-      <p className="text-xs text-stone-500">Guarde uma cópia de todos os dados num arquivo, ou restaure de um arquivo salvo antes.</p>
+      <p className="font-semibold text-slate-700">Backup</p>
+      <p className="text-xs text-slate-500">Guarde uma cópia de todos os dados num arquivo, ou restaure de um arquivo salvo antes.</p>
       <div className="flex gap-2">
         <Button variant="secondary" className="flex-1" onClick={exportar}>
-          ⬇️ Exportar
+          <Download className="h-4 w-4" /> Exportar
         </Button>
         <Button variant="secondary" className="flex-1" onClick={() => inputRef.current?.click()}>
-          ⬆️ Importar
+          <Upload className="h-4 w-4" /> Importar
         </Button>
         <input ref={inputRef} type="file" accept="application/json,.json" className="hidden" onChange={(e) => importar(e.target.files?.[0])} />
       </div>
-      {msg && <p className="text-xs text-stone-600">{msg}</p>}
+      {msg && <p className="text-xs text-slate-600">{msg}</p>}
     </Card>
   )
 }

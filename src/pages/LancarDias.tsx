@@ -20,13 +20,13 @@ export default function LancarDias() {
         subtitle={aba === 'diaria' ? 'Toque no dia para marcar presença' : 'Pagamento fixo por serviço (empreitada)'}
       />
 
-      <div className="flex gap-1 mb-4 bg-stone-100 rounded-lg p-1">
+      <div className="flex gap-1 mb-4 bg-slate-100 rounded-lg p-1">
         {ABAS.map((a) => (
           <button
             key={a.id}
             onClick={() => setAba(a.id)}
             className={`flex-1 text-sm font-medium rounded-md py-2 transition-colors ${
-              aba === a.id ? 'bg-white text-amber-800 shadow-sm' : 'text-stone-500'
+              aba === a.id ? 'bg-white text-brand-800 shadow-sm' : 'text-slate-500'
             }`}
           >
             {a.label}

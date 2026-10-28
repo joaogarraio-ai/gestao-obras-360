@@ -1,3 +1,4 @@
+import { Camera, Pencil, Printer, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { useStore } from '../../lib/store'
 import { formatDatePt, toISODate, weekdayLabel } from '../../lib/dates'
@@ -71,14 +72,14 @@ export default function DiarioTab({ obra }: { obra: Obra }) {
           </Button>
           {diarios.length > 0 && (
             <Button variant="secondary" onClick={() => window.print()}>
-              🖨️
+              <Printer className="h-4 w-4" />
             </Button>
           )}
         </div>
       )}
 
       {form && (
-        <Card className="p-4 space-y-3 border-amber-400">
+        <Card className="p-4 space-y-3 border-brand-400">
           <div className="grid grid-cols-2 gap-2">
             <Field label="Data">
               <Input type="date" value={form.data} onChange={(e) => setForm({ ...form, data: e.target.value })} />
@@ -105,17 +106,17 @@ export default function DiarioTab({ obra }: { obra: Obra }) {
               </Select>
             </Field>
           </div>
-          {efetivoDoDia(form.data) > 0 && <p className="text-xs text-stone-500">{efetivoDoDia(form.data)} trabalhador(es) lançados em Dias nesta data.</p>}
+          {efetivoDoDia(form.data) > 0 && <p className="text-xs text-slate-500">{efetivoDoDia(form.data)} trabalhador(es) lançados em Dias nesta data.</p>}
           <Field label="Atividades executadas">
             <textarea
-              className="w-full rounded-lg border border-stone-300 px-3 py-2.5 text-base min-h-24 focus:border-amber-600 focus:outline-none"
+              className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-base min-h-24 focus:border-brand-600 focus:outline-none"
               value={form.atividades}
               onChange={(e) => setForm({ ...form, atividades: e.target.value })}
             />
           </Field>
           <Field label="Ocorrências / observações">
             <textarea
-              className="w-full rounded-lg border border-stone-300 px-3 py-2.5 text-base min-h-16 focus:border-amber-600 focus:outline-none"
+              className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-base min-h-16 focus:border-brand-600 focus:outline-none"
               value={form.ocorrencias ?? ''}
               onChange={(e) => setForm({ ...form, ocorrencias: e.target.value })}
             />
@@ -129,8 +130,8 @@ export default function DiarioTab({ obra }: { obra: Obra }) {
                 </button>
               ))}
               {form.fotos.length < MAX_FOTOS && (
-                <label className="h-20 w-20 rounded-lg border border-dashed border-stone-300 flex items-center justify-center text-2xl text-stone-400 cursor-pointer">
-                  📷
+                <label className="h-20 w-20 rounded-lg border border-dashed border-slate-300 flex items-center justify-center text-2xl text-slate-400 cursor-pointer">
+                  <Camera className="h-4 w-4" />
                   <input type="file" accept="image/*" multiple className="hidden" onChange={(e) => adicionarFotos(e.target.files)} />
                 </label>
               )}
@@ -153,16 +154,16 @@ export default function DiarioTab({ obra }: { obra: Obra }) {
         <Card key={d.id} className="p-3 break-inside-avoid">
           <div className="flex items-start justify-between gap-2">
             <div>
-              <p className="font-semibold text-stone-800">
+              <p className="font-semibold text-slate-800">
                 {weekdayLabel(d.data)}, {formatDatePt(d.data)}
               </p>
-              <p className="text-xs text-stone-500">
+              <p className="text-xs text-slate-500">
                 Manhã {CLIMA_LABEL[d.climaManha]} · Tarde {CLIMA_LABEL[d.climaTarde]} · {d.efetivo} pessoa(s)
               </p>
             </div>
             <div className="flex shrink-0 no-print">
               <Button variant="ghost" className="px-2" onClick={() => setForm({ ...d, ocorrencias: d.ocorrencias ?? '' })}>
-                ✏️
+                <Pencil className="h-4 w-4" />
               </Button>
               <Button
                 variant="ghost"
@@ -171,11 +172,11 @@ export default function DiarioTab({ obra }: { obra: Obra }) {
                   if (confirm('Excluir este registro?')) removeItem('diarios', d.id)
                 }}
               >
-                🗑️
+                <Trash2 className="h-4 w-4" />
               </Button>
             </div>
           </div>
-          <p className="text-sm text-stone-700 mt-2 whitespace-pre-line">{d.atividades}</p>
+          <p className="text-sm text-slate-700 mt-2 whitespace-pre-line">{d.atividades}</p>
           {d.ocorrencias && <p className="text-sm text-red-700 mt-1 whitespace-pre-line">⚠️ {d.ocorrencias}</p>}
           {d.fotos.length > 0 && (
             <div className="flex gap-2 mt-2 flex-wrap">

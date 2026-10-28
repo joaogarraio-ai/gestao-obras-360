@@ -24,7 +24,7 @@ export default function Obras() {
     <div>
       <PageTitle title="Obras" subtitle="Orçamento, cronograma, compras, medições e diário de cada obra" />
 
-      <Card className="p-4 mb-3">
+      <Card className="p-4 mb-4 lg:max-w-xl">
         <div className="flex gap-2">
           <Input
             value={novoNome}
@@ -38,7 +38,7 @@ export default function Obras() {
 
       {db.obras.length === 0 && <EmptyState text="Nenhuma obra cadastrada ainda." />}
 
-      <div className="space-y-2 mb-4">
+      <div className="grid gap-3 mb-4 lg:grid-cols-2">
         {db.obras.map((o) => {
           const orcamento = custoDiretoObra(db, o.id) * (1 + bdiDaObra(o))
           const gasto = movs.filter((m) => m.obraId === o.id && m.tipo === 'saida' && m.realizado).reduce((a, m) => a + m.valor, 0)
@@ -46,26 +46,26 @@ export default function Obras() {
           const pendentes = db.solicitacoesCompra.filter((s) => s.obraId === o.id && s.status === 'pendente').length
           return (
             <Link key={o.id} to={`/obras/${o.id}`} className="block">
-              <Card className="p-4 hover:border-amber-400">
+              <Card className="p-4 hover:border-brand-400">
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
-                    <p className="font-semibold text-stone-800 truncate">{o.nome}</p>
-                    {o.cliente && <p className="text-xs text-stone-500 truncate">{o.cliente}</p>}
+                    <p className="font-semibold text-slate-800 truncate">{o.nome}</p>
+                    {o.cliente && <p className="text-xs text-slate-500 truncate">{o.cliente}</p>}
                   </div>
                   {pendentes > 0 && <Badge tone="amber">{pendentes} compra(s) p/ aprovar</Badge>}
                 </div>
                 <div className="grid grid-cols-3 gap-2 mt-3 text-xs">
                   <div>
-                    <p className="text-stone-500">Orçamento</p>
-                    <p className="font-semibold text-stone-800">{orcamento > 0 ? formatBRL(orcamento) : '—'}</p>
+                    <p className="text-slate-500">Orçamento</p>
+                    <p className="font-semibold text-slate-800">{orcamento > 0 ? formatBRL(orcamento) : '—'}</p>
                   </div>
                   <div>
-                    <p className="text-stone-500">Gasto</p>
-                    <p className="font-semibold text-stone-800">{formatBRL(gasto)}</p>
+                    <p className="text-slate-500">Gasto</p>
+                    <p className="font-semibold text-slate-800">{formatBRL(gasto)}</p>
                   </div>
                   <div>
-                    <p className="text-stone-500">Avanço físico</p>
-                    <p className="font-semibold text-stone-800">{formatPercent(avanco, 0)}</p>
+                    <p className="text-slate-500">Avanço físico</p>
+                    <p className="font-semibold text-slate-800">{formatPercent(avanco, 0)}</p>
                   </div>
                 </div>
                 <div className="mt-2">
@@ -78,8 +78,8 @@ export default function Obras() {
       </div>
 
       {!temExemplo && (
-        <Card className="p-4 bg-amber-50 border-amber-200">
-          <p className="text-sm text-stone-700 mb-3">
+        <Card className="p-4 bg-brand-50 border-brand-200">
+          <p className="text-sm text-slate-700 mb-3">
             Quer ver como funciona? Crie uma obra de demonstração já preenchida com orçamento, cronograma, compras, medições, contas e diário.
           </p>
           <Button variant="secondary" onClick={() => replaceDatabase(adicionarObraExemplo)}>

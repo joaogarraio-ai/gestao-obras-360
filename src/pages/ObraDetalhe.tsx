@@ -34,7 +34,7 @@ export default function ObraDetalhe() {
     return (
       <div>
         <EmptyState text="Obra não encontrada." />
-        <Link to="/obras" className="block text-center text-sm text-amber-700 underline mt-3">
+        <Link to="/obras" className="block text-center text-sm text-brand-700 underline mt-3">
           Voltar para obras
         </Link>
       </div>
@@ -43,7 +43,7 @@ export default function ObraDetalhe() {
 
   return (
     <div>
-      <Link to="/obras" className="no-print text-sm text-amber-700">
+      <Link to="/obras" className="no-print text-sm text-brand-700">
         ← Obras
       </Link>
       <PageTitle title={obra.nome} subtitle={[obra.cliente, obra.endereco].filter(Boolean).join(' · ') || undefined} />

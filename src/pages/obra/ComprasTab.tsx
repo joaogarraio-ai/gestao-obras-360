@@ -102,18 +102,18 @@ export default function ComprasTab({ obra }: { obra: Obra }) {
 
   return (
     <div className="space-y-3">
-      <p className="text-sm text-stone-500">
+      <p className="text-sm text-slate-500">
         Fluxo: a obra pede o material → alguém aprova → ao comprar, a nota entra automaticamente em Materiais e no financeiro.
       </p>
 
       {!mostrarForm && (
-        <Button className="w-full" onClick={() => setMostrarForm(true)}>
+        <Button className="w-full sm:w-auto" onClick={() => setMostrarForm(true)}>
           + Nova solicitação de compra
         </Button>
       )}
 
       {mostrarForm && (
-        <Card className="p-4 space-y-3 border-amber-400">
+        <Card className="p-4 space-y-3 border-brand-400">
           <Field label="Material / serviço">
             <Input value={form.descricao} onChange={(e) => setForm({ ...form, descricao: e.target.value })} placeholder="Ex: Cimento CP-II 50 kg" />
           </Field>
@@ -166,7 +166,7 @@ export default function ComprasTab({ obra }: { obra: Obra }) {
 
       {comprando && (
         <Card className="p-4 space-y-3 border-green-400">
-          <p className="font-semibold text-stone-700">Registrar compra: {comprando.s.descricao}</p>
+          <p className="font-semibold text-slate-700">Registrar compra: {comprando.s.descricao}</p>
           <Field label="Fornecedor">
             <Select value={comprando.fornecedorId} onChange={(e) => setComprando({ ...comprando, fornecedorId: e.target.value })}>
               <option value="">Escolha…</option>
@@ -186,10 +186,10 @@ export default function ComprasTab({ obra }: { obra: Obra }) {
             </Field>
           </div>
           {comprando.s.quantidade > 0 && (
-            <label className="flex items-center gap-2 text-sm text-stone-700">
+            <label className="flex items-center gap-2 text-sm text-slate-700">
               <input
                 type="checkbox"
-                className="accent-amber-700"
+                className="accent-brand-700"
                 checked={comprando.entrarEstoque}
                 onChange={(e) => setComprando({ ...comprando, entrarEstoque: e.target.checked })}
               />
@@ -214,7 +214,7 @@ export default function ComprasTab({ obra }: { obra: Obra }) {
         if (lista.length === 0) return null
         return (
           <div key={status}>
-            <p className="text-sm font-semibold text-stone-600 mb-1.5">
+            <p className="text-sm font-semibold text-slate-600 mb-1.5">
               {STATUS_SOLICITACAO_LABEL[status]} ({lista.length})
             </p>
             <div className="space-y-2">
@@ -222,14 +222,14 @@ export default function ComprasTab({ obra }: { obra: Obra }) {
                 <Card key={s.id} className="p-3">
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
-                      <p className="font-semibold text-stone-800">{s.descricao}</p>
-                      <p className="text-xs text-stone-500">
+                      <p className="font-semibold text-slate-800">{s.descricao}</p>
+                      <p className="text-xs text-slate-500">
                         {formatNumero(s.quantidade)} {s.unidade} · {formatDatePt(s.data)} · {s.solicitante}
                         {nomeEtapa(s.etapaId) ? ` · ${nomeEtapa(s.etapaId)}` : ''}
                         {nomeFornecedor(s.fornecedorId) ? ` · ${nomeFornecedor(s.fornecedorId)}` : ''}
                       </p>
                       {s.aprovadoPor && (
-                        <p className="text-xs text-stone-500">
+                        <p className="text-xs text-slate-500">
                           {s.status === 'rejeitada' ? 'Rejeitada' : 'Aprovada'} por {s.aprovadoPor}
                           {s.dataDecisao ? ` em ${formatDatePt(s.dataDecisao)}` : ''}
                           {s.motivoRejeicao ? `: ${s.motivoRejeicao}` : ''}
@@ -237,7 +237,7 @@ export default function ComprasTab({ obra }: { obra: Obra }) {
                       )}
                     </div>
                     <div className="text-right shrink-0">
-                      <p className="font-semibold text-stone-800 whitespace-nowrap">{formatBRL(s.valorEstimado)}</p>
+                      <p className="font-semibold text-slate-800 whitespace-nowrap">{formatBRL(s.valorEstimado)}</p>
                       <Badge tone={TONE[s.status]}>{STATUS_SOLICITACAO_LABEL[s.status]}</Badge>
                     </div>
                   </div>
@@ -264,7 +264,7 @@ export default function ComprasTab({ obra }: { obra: Obra }) {
                   )}
                   {(s.status === 'pendente' || s.status === 'rejeitada') && (
                     <button
-                      className="text-xs text-stone-400 mt-2"
+                      className="text-xs text-slate-400 mt-2"
                       onClick={() => {
                         if (confirm('Excluir esta solicitação?')) removeItem('solicitacoesCompra', s.id)
                       }}

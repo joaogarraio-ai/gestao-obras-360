@@ -1,3 +1,4 @@
+import { Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { useStore } from '../../lib/store'
 import { etapasDaObra, saldoMaterial, saldosEstoque } from '../../lib/gestao'
@@ -102,8 +103,8 @@ export default function EstoqueTab({ obra }: { obra: Obra }) {
       </div>
 
       {form && (
-        <Card className="p-4 space-y-3 border-amber-400">
-          <p className="font-semibold text-stone-700">{TIPO_MOVIMENTO_LABEL[form.tipo]}</p>
+        <Card className="p-4 space-y-3 border-brand-400">
+          <p className="font-semibold text-slate-700">{TIPO_MOVIMENTO_LABEL[form.tipo]}</p>
           <Field label="Material">
             <Select value={form.materialId} onChange={(e) => setForm({ ...form, materialId: e.target.value })}>
               {form.tipo === 'entrada' && <option value="">+ Material novo</option>}
@@ -182,7 +183,7 @@ export default function EstoqueTab({ obra }: { obra: Obra }) {
       )}
 
       {editandoMinimo && (
-        <Card className="p-4 space-y-3 border-amber-400">
+        <Card className="p-4 space-y-3 border-brand-400">
           <Field label={`Estoque mínimo de ${editandoMinimo.material.nome} (${editandoMinimo.material.unidade})`}>
             <Input value={editandoMinimo.valor} onChange={(e) => setEditandoMinimo({ ...editandoMinimo, valor: e.target.value })} inputMode="decimal" autoFocus />
           </Field>
@@ -220,15 +221,15 @@ export default function EstoqueTab({ obra }: { obra: Obra }) {
           <EmptyState text="Nenhum material no almoxarifado desta obra. Lance uma entrada." />
         ) : (
           <>
-            <p className="text-sm text-stone-500">
-              Valor estimado em estoque: <span className="font-semibold text-stone-800">{formatBRL(valorTotal)}</span>
+            <p className="text-sm text-slate-500">
+              Valor estimado em estoque: <span className="font-semibold text-slate-800">{formatBRL(valorTotal)}</span>
             </p>
             <div className="space-y-2">
               {saldos.map((s) => (
                 <Card key={s.material.id} className="p-3 flex items-center justify-between gap-2">
                   <div className="min-w-0">
-                    <p className="font-semibold text-stone-800 truncate">{s.material.nome}</p>
-                    <p className="text-xs text-stone-500">
+                    <p className="font-semibold text-slate-800 truncate">{s.material.nome}</p>
+                    <p className="text-xs text-slate-500">
                       Consumido {formatNumero(s.consumido)} {s.material.unidade}
                       {s.custoMedio > 0 ? ` · custo médio ${formatBRL(s.custoMedio)}` : ''}
                       {' · '}
@@ -238,8 +239,8 @@ export default function EstoqueTab({ obra }: { obra: Obra }) {
                     </p>
                   </div>
                   <div className="text-right shrink-0">
-                    <p className={`text-lg font-bold ${s.saldo < 0 || s.abaixoDoMinimo ? 'text-red-600' : 'text-stone-800'}`}>
-                      {formatNumero(s.saldo)} <span className="text-xs font-normal text-stone-500">{s.material.unidade}</span>
+                    <p className={`text-lg font-bold ${s.saldo < 0 || s.abaixoDoMinimo ? 'text-red-600' : 'text-slate-800'}`}>
+                      {formatNumero(s.saldo)} <span className="text-xs font-normal text-slate-500">{s.material.unidade}</span>
                     </p>
                     {s.abaixoDoMinimo && <Badge tone="red">repor</Badge>}
                   </div>
@@ -266,8 +267,8 @@ export default function EstoqueTab({ obra }: { obra: Obra }) {
               return (
                 <Card key={m.id} className="p-3 flex items-center justify-between gap-2">
                   <div className="min-w-0">
-                    <p className="font-semibold text-stone-800 truncate">{material?.nome ?? '—'}</p>
-                    <p className="text-xs text-stone-500 truncate">
+                    <p className="font-semibold text-slate-800 truncate">{material?.nome ?? '—'}</p>
+                    <p className="text-xs text-slate-500 truncate">
                       {formatDatePt(m.data)} · {detalhe}
                       {m.etapaId ? ` · ${etapas.find((e) => e.id === m.etapaId)?.nome ?? ''}` : ''}
                       {m.responsavel ? ` · ${m.responsavel}` : ''}
@@ -286,7 +287,7 @@ export default function EstoqueTab({ obra }: { obra: Obra }) {
                         if (confirm('Excluir esta movimentação?')) removeItem('movimentosEstoque', m.id)
                       }}
                     >
-                      🗑️
+                      <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
                 </Card>
