@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import type { RealtimeChannel, Session } from '@supabase/supabase-js'
-import { supabase, type Empresa } from './supabase'
+import { CAMPOS_EMPRESA, empresaLiberada, supabase, type Empresa } from './supabase'
 import { useStore } from './store'
 import type { Database } from './types'
 
@@ -75,6 +75,14 @@ function diferencas(db: Database, base: Record<string, string>): Operacao[] {
   return ops
 }
 
+function empresaGuardada(): Empresa | null {
+  try {
+    return JSON.parse(localStorage.getItem(EMPRESA_KEY) ?? 'null') as Empresa | null
+  } catch {
+    return null
+  }
+}
+
 function bancoVazio(): Database {
   return Object.fromEntries(COLECOES.map((c) => [c, []])) as unknown as Database
 }
@@ -100,6 +108,10 @@ interface SyncValue {
   session: Session | null
   carregandoSessao: boolean
   empresa: Empresa | null
+  /** Conta mestre: controla as empresas e as licenças do sistema. */
+  mestre: boolean
+  /** Situação da licença da empresa escolhida. */
+  licenca: 'verificando' | 'liberada' | 'bloqueada'
   /** Dados da empresa já carregados neste aparelho. */
   pronto: boolean
   status: StatusSync
@@ -117,17 +129,14 @@ export function SyncProvider({ children }: { children: ReactNode }) {
   const { db, replaceDatabase } = useStore()
   const [session, setSession] = useState<Session | null>(null)
   const [carregandoSessao, setCarregandoSessao] = useState(!!supabase)
-  const [empresa, setEmpresa] = useState<Empresa | null>(() => {
-    try {
-      return JSON.parse(localStorage.getItem(EMPRESA_KEY) ?? 'null') as Empresa | null
-    } catch {
-      return null
-    }
-  })
+  const [empresa, setEmpresa] = useState<Empresa | null>(empresaGuardada)
   const [status, setStatus] = useState<StatusSync>(supabase ? 'carregando' : 'local')
   const [pendentes, setPendentes] = useState(0)
   const [ultimoErro, setUltimoErro] = useState<string | null>(null)
   const [pronto, setPronto] = useState(false)
+  const [mestre, setMestre] = useState(false)
+  const [licenca, setLicenca] = useState<SyncValue['licenca']>('verificando')
+  const empresaId = empresa?.id
 
   const dbRef = useRef(db)
   useEffect(() => {
@@ -154,7 +163,7 @@ export function SyncProvider({ children }: { children: ReactNode }) {
 
   // ---- envio das mudanças locais ----
   const enviar = useCallback(async () => {
-    if (!supabase || !empresa || enviandoRef.current) return
+    if (!supabase || !empresaId || enviandoRef.current) return
     const ops = diferencas(dbRef.current, baseRef.current)
     setPendentes(ops.length)
     if (ops.length === 0) {
@@ -168,7 +177,7 @@ export function SyncProvider({ children }: { children: ReactNode }) {
         const lote = ops.slice(i, i + 200)
         const { error } = await supabase.from('registros').upsert(
           lote.map((op) => ({
-            empresa_id: empresa.id,
+            empresa_id: empresaId,
             colecao: op.colecao,
             id: op.id,
             dados: op.dados ?? {},
@@ -194,18 +203,60 @@ export function SyncProvider({ children }: { children: ReactNode }) {
     } finally {
       enviandoRef.current = false
     }
-  }, [empresa])
+  }, [empresaId])
 
-  // ---- carga inicial ao entrar na empresa ----
+  // ---- licença da empresa (teste, mensal ou bloqueada) ----
   const userId = session?.user.id
   useEffect(() => {
-    if (!supabase || !userId || !empresa) return
+    if (!supabase || !userId) return
+    supabase.rpc('eu_sou_mestre').then(({ data }) => setMestre(data === true))
+  }, [userId])
+
+  useEffect(() => {
+    if (!supabase || !userId || !empresaId) return
+    let cancelado = false
+    setLicenca('verificando')
+    const verificar = async () => {
+      const [{ data, error }, { data: souMestre }] = await Promise.all([
+        supabase!.from('empresas').select(CAMPOS_EMPRESA).eq('id', empresaId).maybeSingle(),
+        supabase!.rpc('eu_sou_mestre'),
+      ])
+      if (cancelado) return
+      if (error) {
+        // sem internet: vale o que ficou guardado no aparelho
+        const guardada = empresaGuardada()
+        setLicenca((l) => (l !== 'verificando' ? l : !guardada || empresaLiberada(guardada) ? 'liberada' : 'bloqueada'))
+        return
+      }
+      if (!data) {
+        // não faz mais parte desta empresa
+        localStorage.removeItem(EMPRESA_KEY)
+        setEmpresa(null)
+        return
+      }
+      const atual = data as Empresa
+      localStorage.setItem(EMPRESA_KEY, JSON.stringify(atual))
+      setEmpresa((e) => (e && JSON.stringify(e) === JSON.stringify(atual) ? e : atual))
+      setLicenca(souMestre === true || empresaLiberada(atual) ? 'liberada' : 'bloqueada')
+    }
+    verificar()
+    // confere de novo a cada 10 minutos (vencimento ou liberação feita pela conta mestre)
+    const timer = setInterval(verificar, 600_000)
+    return () => {
+      cancelado = true
+      clearInterval(timer)
+    }
+  }, [userId, empresaId])
+
+  // ---- carga inicial ao entrar na empresa ----
+  useEffect(() => {
+    if (!supabase || !userId || !empresaId || licenca !== 'liberada') return
     let cancelado = false
     setPronto(false)
     setStatus('carregando')
     ;(async () => {
       const carregada = localStorage.getItem(EMPRESA_KEY + ':carregada')
-      const mesmaEmpresaNoAparelho = carregada === empresa.id
+      const mesmaEmpresaNoAparelho = carregada === empresaId
       // 1. manda o que ficou pendente offline (só se este aparelho já era desta empresa)
       if (mesmaEmpresaNoAparelho) await enviar()
 
@@ -215,7 +266,7 @@ export function SyncProvider({ children }: { children: ReactNode }) {
         const { data, error } = await supabase!
           .from('registros')
           .select('colecao,id,dados,excluido')
-          .eq('empresa_id', empresa.id)
+          .eq('empresa_id', empresaId)
           .order('colecao')
           .order('id')
           .range(de, de + 999)
@@ -256,14 +307,14 @@ export function SyncProvider({ children }: { children: ReactNode }) {
         dbRef.current = novo
       }
       salvarBase(baseRef.current)
-      localStorage.setItem(EMPRESA_KEY + ':carregada', empresa.id)
+      localStorage.setItem(EMPRESA_KEY + ':carregada', empresaId)
       setPronto(true)
       setTentativa((t) => t + 1)
     })()
     return () => {
       cancelado = true
     }
-  }, [userId, empresa, enviar, replaceDatabase])
+  }, [userId, empresaId, licenca, enviar, replaceDatabase])
 
   // ---- envia as mudanças com um pequeno atraso ----
   useEffect(() => {
@@ -285,12 +336,12 @@ export function SyncProvider({ children }: { children: ReactNode }) {
 
   // ---- recebe as mudanças da equipe em tempo real ----
   useEffect(() => {
-    if (!supabase || !pronto || !empresa) return
+    if (!supabase || !pronto || !empresaId) return
     const canal: RealtimeChannel = supabase
-      .channel(`registros-${empresa.id}`)
+      .channel(`registros-${empresaId}`)
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'registros', filter: `empresa_id=eq.${empresa.id}` },
+        { event: '*', schema: 'public', table: 'registros', filter: `empresa_id=eq.${empresaId}` },
         (payload) => {
           const linha = payload.new as { colecao?: string; id?: string; dados?: Item; excluido?: boolean }
           if (!linha.colecao || !linha.id || !(COLECOES as readonly string[]).includes(linha.colecao)) return
@@ -318,7 +369,7 @@ export function SyncProvider({ children }: { children: ReactNode }) {
     return () => {
       supabase?.removeChannel(canal)
     }
-  }, [pronto, empresa, replaceDatabase])
+  }, [pronto, empresaId, replaceDatabase])
 
   const escolherEmpresa = useCallback(async (e: Empresa) => {
     localStorage.setItem(EMPRESA_KEY, JSON.stringify(e))
@@ -346,6 +397,8 @@ export function SyncProvider({ children }: { children: ReactNode }) {
       session,
       carregandoSessao,
       empresa,
+      mestre,
+      licenca,
       pronto,
       status,
       pendentes,
@@ -355,7 +408,7 @@ export function SyncProvider({ children }: { children: ReactNode }) {
       sair,
       sincronizarAgora,
     }),
-    [session, carregandoSessao, empresa, pronto, status, pendentes, ultimoErro, escolherEmpresa, trocarEmpresa, sair, sincronizarAgora],
+    [session, carregandoSessao, empresa, mestre, licenca, pronto, status, pendentes, ultimoErro, escolherEmpresa, trocarEmpresa, sair, sincronizarAgora],
   )
 
   return <SyncContext.Provider value={value}>{children}</SyncContext.Provider>

@@ -12,7 +12,8 @@ function limpar(valor: string | undefined) {
 
 const urlEnv = limpar(import.meta.env.VITE_SUPABASE_URL as string | undefined)
 const chaveEnv = limpar(import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined)
-const url = /^https:\/\/[a-z0-9-]+\.supabase\.co$/.test(urlEnv.replace(/\/+$/, '')) ? urlEnv.replace(/\/+$/, '') : URL_PADRAO
+const urlLimpa = urlEnv.replace(/\/+$/, '')
+const url = /^(https:\/\/[a-z0-9-]+\.supabase\.co|http:\/\/(localhost|127\.0\.0\.1):\d+)$/.test(urlLimpa) ? urlLimpa : URL_PADRAO
 const anonKey = /^(eyJ[\w-]+\.[\w-]+\.[\w-]+|sb_publishable_[\w-]+)$/.test(chaveEnv) ? chaveEnv : CHAVE_PADRAO
 
 /** Cliente do Supabase, ou null quando o app roda só no aparelho (sem as chaves configuradas). */
@@ -24,10 +25,29 @@ export const supabase: SupabaseClient | null =
       })
     : null
 
+export type Plano = 'teste' | 'mensal'
+
 export interface Empresa {
   id: string
   nome: string
   codigo_convite: string
+  plano?: Plano
+  /** Data e hora (ISO) até quando a empresa pode usar o sistema. */
+  acesso_ate?: string
+  bloqueada?: boolean
+}
+
+export const CAMPOS_EMPRESA = 'id,nome,codigo_convite,plano,acesso_ate,bloqueada'
+
+/** Dias de acesso que faltam (negativo quando já venceu). */
+export function diasRestantes(e: Pick<Empresa, 'acesso_ate'>): number | null {
+  if (!e.acesso_ate) return null
+  return Math.ceil((new Date(e.acesso_ate).getTime() - Date.now()) / 86_400_000)
+}
+
+export function empresaLiberada(e: Empresa): boolean {
+  if (e.bloqueada) return false
+  return !e.acesso_ate || new Date(e.acesso_ate).getTime() > Date.now()
 }
 
 export interface Membro {

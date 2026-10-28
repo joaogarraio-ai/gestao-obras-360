@@ -10,6 +10,7 @@ import Obras from './pages/Obras'
 import ObraDetalhe from './pages/ObraDetalhe'
 import Financeiro from './pages/Financeiro'
 import Conta from './pages/Conta'
+import Admin from './pages/Admin'
 
 export default function App() {
   return (
@@ -26,6 +27,7 @@ export default function App() {
           <Route path="/obras/:id" element={<ObraDetalhe />} />
           <Route path="/financeiro" element={<Financeiro />} />
           <Route path="/conta" element={<Conta />} />
+          <Route path="/admin" element={<Admin />} />
         </Route>
       </Routes>
     </HashRouter>

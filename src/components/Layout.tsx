@@ -12,6 +12,7 @@ import {
   Package,
   RefreshCw,
   Settings,
+  ShieldCheck,
   Smartphone,
   TriangleAlert,
   Truck,
@@ -21,6 +22,7 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 import { useSync, type StatusSync } from '../lib/sync'
+import { diasRestantes, type Empresa } from '../lib/supabase'
 
 interface ItemNav {
   to: string
@@ -71,6 +73,27 @@ const SYNC: Record<StatusSync, { icon: LucideIcon; texto: string; cor: string; g
   erro: { icon: TriangleAlert, texto: 'Erro ao sincronizar', cor: 'text-red-500' },
 }
 
+const ITEM_ADMIN: ItemNav = { to: '/admin', label: 'Administração', icon: ShieldCheck }
+
+/** Aviso do período de teste ou da mensalidade perto de vencer. */
+function AvisoLicenca({ empresa }: { empresa: Empresa }) {
+  const dias = diasRestantes(empresa)
+  if (dias === null || dias < 0) return null
+  if (empresa.plano === 'teste') {
+    return (
+      <div className="no-print mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5 text-sm text-amber-800">
+        Teste grátis: {dias <= 1 ? 'último dia' : `faltam ${dias} dias`}. Para continuar depois, fale com a JotaP Entretenimento e assine o plano mensal.
+      </div>
+    )
+  }
+  if (dias > 5) return null
+  return (
+    <div className="no-print mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5 text-sm text-amber-800">
+      Sua mensalidade vence {dias <= 1 ? 'hoje' : `em ${dias} dias`}. Fale com a JotaP Entretenimento para renovar.
+    </div>
+  )
+}
+
 function Logo({ escuro = false }: { escuro?: boolean }) {
   return (
     <div className="flex items-center gap-2.5">
@@ -90,7 +113,10 @@ function linkLateral({ isActive }: { isActive: boolean }) {
 }
 
 export default function Layout() {
-  const { status, empresa } = useSync()
+  const { status, empresa, mestre } = useSync()
+  const grupos = mestre
+    ? GRUPOS.map((g) => (g.titulo === 'Configurações' ? { ...g, itens: [...g.itens, ITEM_ADMIN] } : g))
+    : GRUPOS
   const sync = SYNC[status]
   const [maisAberto, setMaisAberto] = useState(false)
   const location = useLocation()
@@ -112,7 +138,7 @@ export default function Layout() {
           {empresa && <p className="mt-3 truncate rounded-lg bg-white/5 px-2.5 py-1.5 text-xs text-slate-300">{empresa.nome}</p>}
         </div>
         <nav className="mt-6 flex-1 space-y-6 overflow-y-auto">
-          {GRUPOS.map((g) => (
+          {grupos.map((g) => (
             <div key={g.titulo}>
               <p className="px-3 mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-500">{g.titulo}</p>
               <div className="space-y-0.5">
@@ -144,6 +170,7 @@ export default function Layout() {
       </header>
 
       <main className="mx-auto w-full max-w-6xl px-4 pt-5 pb-28 lg:px-8 lg:pt-8 lg:pb-12">
+        {empresa && !mestre && <AvisoLicenca empresa={empresa} />}
         <Outlet />
       </main>
 
@@ -184,7 +211,7 @@ export default function Layout() {
               </button>
             </div>
             <div className="grid grid-cols-3 gap-2">
-              {GRUPOS.flatMap((g) => g.itens).map((i) => (
+              {grupos.flatMap((g) => g.itens).map((i) => (
                 <NavLink
                   key={i.to}
                   to={i.to}
