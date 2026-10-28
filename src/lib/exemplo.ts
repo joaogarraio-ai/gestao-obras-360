@@ -69,6 +69,11 @@ export function adicionarObraExemplo(db: Database): Database {
   const compra2 = generateId()
   const solicitacao1 = generateId()
 
+  const cimento = generateId()
+  const areia = generateId()
+  const bloco = generateId()
+  const aco = generateId()
+
   const contratoEstrutura = generateId()
   const contratoEletrica = generateId()
 
@@ -120,6 +125,25 @@ export function adicionarObraExemplo(db: Database): Database {
       { id: generateId(), obraId, tipo: 'receita', descricao: 'Parcela final do cliente', valor: 104000, vencimento: addDays(hoje, 110), pago: false },
       { id: generateId(), obraId, tipo: 'despesa', descricao: 'Aluguel de betoneira', valor: 1200, vencimento: addDays(hoje, 5), pago: false, categoria: 'equipamento' },
       { id: generateId(), obraId, tipo: 'despesa', descricao: 'Aluguel de andaimes', valor: 1800, vencimento: addDays(hoje, -20), pago: true, dataPagamento: addDays(hoje, -20), categoria: 'equipamento' },
+    ],
+    materiaisEstoque: [
+      ...db.materiaisEstoque,
+      { id: cimento, nome: 'Cimento CP-II 50 kg', unidade: 'saco', estoqueMinimo: 40 },
+      { id: areia, nome: 'Areia média', unidade: 'm³', estoqueMinimo: 5 },
+      { id: bloco, nome: 'Bloco cerâmico 14x19x29', unidade: 'un', estoqueMinimo: 1000 },
+      { id: aco, nome: 'Aço CA-50 10 mm', unidade: 'kg' },
+    ],
+    movimentosEstoque: [
+      ...db.movimentosEstoque,
+      { id: generateId(), materialId: cimento, obraId, data: addDays(inicio, 5), tipo: 'entrada', quantidade: 200, valorUnitario: 38.5, responsavel: 'Almoxarife' },
+      { id: generateId(), materialId: cimento, obraId, data: addDays(inicio, 20), tipo: 'saida', quantidade: 90, etapaId: etapas[1].id, responsavel: 'Mestre de obra' },
+      { id: generateId(), materialId: cimento, obraId, data: addDays(hoje, -10), tipo: 'saida', quantidade: 75, etapaId: etapas[3].id, responsavel: 'Mestre de obra' },
+      { id: generateId(), materialId: areia, obraId, data: addDays(inicio, 5), tipo: 'entrada', quantidade: 24, valorUnitario: 120 },
+      { id: generateId(), materialId: areia, obraId, data: addDays(hoje, -8), tipo: 'saida', quantidade: 12, etapaId: etapas[3].id },
+      { id: generateId(), materialId: bloco, obraId, data: addDays(hoje, -15), tipo: 'entrada', quantidade: 5000, valorUnitario: 1.6 },
+      { id: generateId(), materialId: bloco, obraId, data: addDays(hoje, -4), tipo: 'saida', quantidade: 3200, etapaId: etapas[3].id },
+      { id: generateId(), materialId: aco, obraId, data: addDays(inicio, 32), tipo: 'entrada', quantidade: 2200, valorUnitario: 13.36, compraId: compra2 },
+      { id: generateId(), materialId: aco, obraId, data: addDays(inicio, 40), tipo: 'saida', quantidade: 1900, etapaId: etapas[2].id },
     ],
     diarios: [
       ...db.diarios,

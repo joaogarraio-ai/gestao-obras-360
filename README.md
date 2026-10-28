@@ -22,9 +22,12 @@ Inspirado nos ERPs de construção (orçamento, cronograma, compras, medições 
 - **Cronograma**: Gantt das etapas com % concluído, linha de hoje e etapas atrasadas em vermelho, e o **cronograma físico-financeiro** mês a mês com % acumulado.
 - **Compras com aprovação**: a obra pede o material, alguém aprova ou rejeita, e ao registrar a compra a nota entra sozinha em Materiais e no financeiro.
 - **Medições de empreiteiros**: contratos de empreitada com retenção técnica, medições por % executado, aprovação e pagamento.
+- **Estoque / almoxarifado** por obra: entradas (com custo), saídas por etapa, transferências entre obras, saldo, custo médio e aviso de estoque mínimo. Ao registrar uma compra aprovada, dá para lançar a entrada no estoque na hora.
 - **Diário de obra (RDO)**: clima de manhã e de tarde, efetivo (puxa quem foi lançado em Dias), atividades, ocorrências e até 4 fotos por dia, com impressão.
 - **Resumo da obra**: contrato, orçamento, gasto, resultado de caixa, avanço físico real x previsto e **orçado x realizado** por categoria e por etapa.
 - **Financeiro**: fluxo de caixa mensal (realizado e previsto) por obra ou geral, contas a pagar e a receber com baixa, juntando diárias, tarefas, materiais, despesas, medições e compras aprovadas.
+
+Em ☁️ (topo) há **Backup**: exportar todos os dados num arquivo `.json` e importar de volta.
 
 Em **Obras** há o botão **Criar obra de exemplo** para ver tudo preenchido.
 

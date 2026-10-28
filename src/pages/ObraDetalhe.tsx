@@ -9,12 +9,14 @@ import CronogramaTab from './obra/CronogramaTab'
 import ComprasTab from './obra/ComprasTab'
 import MedicoesTab from './obra/MedicoesTab'
 import DiarioTab from './obra/DiarioTab'
+import EstoqueTab from './obra/EstoqueTab'
 
 const ABAS = [
   { id: 'resumo', label: 'Resumo' },
   { id: 'orcamento', label: 'Orçamento' },
   { id: 'cronograma', label: 'Cronograma' },
   { id: 'compras', label: 'Compras' },
+  { id: 'estoque', label: 'Estoque' },
   { id: 'medicoes', label: 'Medições' },
   { id: 'diario', label: 'Diário' },
 ] as const
@@ -52,6 +54,7 @@ export default function ObraDetalhe() {
       {aba === 'orcamento' && <OrcamentoTab obra={obra} />}
       {aba === 'cronograma' && <CronogramaTab obra={obra} />}
       {aba === 'compras' && <ComprasTab obra={obra} />}
+      {aba === 'estoque' && <EstoqueTab obra={obra} />}
       {aba === 'medicoes' && <MedicoesTab obra={obra} />}
       {aba === 'diario' && <DiarioTab obra={obra} />}
 

@@ -32,6 +32,8 @@ function seedDatabase(): Database {
     medicoes: [],
     lancamentos: [],
     diarios: [],
+    materiaisEstoque: [],
+    movimentosEstoque: [],
   }
 }
 
@@ -59,6 +61,8 @@ export function loadDatabase(): Database {
       medicoes: parsed.medicoes ?? [],
       lancamentos: parsed.lancamentos ?? [],
       diarios: parsed.diarios ?? [],
+      materiaisEstoque: parsed.materiaisEstoque ?? [],
+      movimentosEstoque: parsed.movimentosEstoque ?? [],
     }
   } catch {
     return seedDatabase()

@@ -1,6 +1,6 @@
 import { fromISODate, toISODate } from './dates'
 import { STATUS_DIA_FRACAO } from './types'
-import type { CategoriaCusto, ComposicaoBDI, ContratoEmpreiteiro, Database, Etapa, ItemOrcamento, Medicao, Obra } from './types'
+import type { CategoriaCusto, ComposicaoBDI, ContratoEmpreiteiro, Database, Etapa, ItemOrcamento, Medicao, MaterialEstoque, MovimentoEstoque, Obra } from './types'
 import { BDI_PADRAO } from './types'
 
 // ---------- BDI e orçamento ----------
@@ -266,9 +266,53 @@ export function removerObraCompleta(db: Database, obraId: string): Database {
     medicoes: db.medicoes.filter((x) => !contratosIds.has(x.contratoId)),
     lancamentos: db.lancamentos.filter((x) => x.obraId !== obraId),
     diarios: db.diarios.filter((x) => x.obraId !== obraId),
+    movimentosEstoque: db.movimentosEstoque.filter((x) => x.obraId !== obraId && x.obraDestinoId !== obraId),
   }
 }
 
 export function formatPercent(fracao: number, casas = 1): string {
   return `${(fracao * 100).toLocaleString('pt-BR', { minimumFractionDigits: casas, maximumFractionDigits: casas })}%`
+}
+
+// ---------- Estoque ----------
+
+export interface SaldoEstoque {
+  material: MaterialEstoque
+  saldo: number
+  /** Custo médio ponderado das entradas nesta obra. */
+  custoMedio: number
+  consumido: number
+  abaixoDoMinimo: boolean
+}
+
+/** Quanto o movimento soma (+) ou tira (−) do estoque da obra. */
+export function efeitoNoEstoque(m: MovimentoEstoque, obraId: string): number {
+  if (m.tipo === 'entrada') return m.obraId === obraId ? m.quantidade : 0
+  if (m.tipo === 'saida') return m.obraId === obraId ? -m.quantidade : 0
+  if (m.obraId === obraId) return -m.quantidade
+  if (m.obraDestinoId === obraId) return m.quantidade
+  return 0
+}
+
+export function saldoMaterial(db: Database, obraId: string, materialId: string, excetoId?: string): number {
+  return db.movimentosEstoque
+    .filter((m) => m.materialId === materialId && m.id !== excetoId)
+    .reduce((acc, m) => acc + efeitoNoEstoque(m, obraId), 0)
+}
+
+export function saldosEstoque(db: Database, obraId: string): SaldoEstoque[] {
+  return db.materiaisEstoque
+    .map((material) => {
+      const movs = db.movimentosEstoque.filter((m) => m.materialId === material.id)
+      const saldo = movs.reduce((acc, m) => acc + efeitoNoEstoque(m, obraId), 0)
+      const entradas = movs.filter((m) => m.tipo === 'entrada' && m.valorUnitario !== undefined)
+      const qtdValorizada = entradas.reduce((a, m) => a + m.quantidade, 0)
+      const custoMedio = qtdValorizada > 0 ? entradas.reduce((a, m) => a + m.quantidade * (m.valorUnitario ?? 0), 0) / qtdValorizada : 0
+      const consumido = movs.filter((m) => m.tipo === 'saida' && m.obraId === obraId).reduce((a, m) => a + m.quantidade, 0)
+      const tocouObra = movs.some((m) => m.obraId === obraId || m.obraDestinoId === obraId)
+      return { material, saldo, custoMedio, consumido, abaixoDoMinimo: material.estoqueMinimo !== undefined && saldo < material.estoqueMinimo, tocouObra }
+    })
+    .filter((s) => s.tocouObra)
+    .map(({ tocouObra: _t, ...s }) => s)
+    .sort((a, b) => a.material.nome.localeCompare(b.material.nome))
 }

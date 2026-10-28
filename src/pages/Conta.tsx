@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { supabase, type Membro } from '../lib/supabase'
 import { useSync } from '../lib/sync'
 import { Badge, Button, Card, Field, Input, PageTitle } from '../components/ui'
+import Backup from '../components/Backup'
 
 const STATUS_TEXTO = {
   local: 'Modo local: os dados ficam só neste aparelho.',
@@ -32,10 +33,13 @@ export default function Conta() {
     return (
       <div>
         <PageTitle title="Conta e sincronização" />
-        <Card className="p-4 text-sm text-stone-600 space-y-2">
-          <p>{STATUS_TEXTO.local}</p>
-          <p>Para a equipe compartilhar os dados, o app precisa ser ligado a um banco de dados Supabase. O passo a passo está no README do projeto.</p>
-        </Card>
+        <div className="space-y-3">
+          <Card className="p-4 text-sm text-stone-600 space-y-2">
+            <p>{STATUS_TEXTO.local}</p>
+            <p>Para a equipe compartilhar os dados, o app precisa ser ligado a um banco de dados Supabase. O passo a passo está no README do projeto.</p>
+          </Card>
+          <Backup />
+        </div>
       </div>
     )
   }
@@ -110,6 +114,8 @@ export default function Conta() {
         </Field>
         {msgSenha && <p className="text-xs text-stone-600">{msgSenha}</p>}
       </Card>
+
+      <Backup />
 
       <div className="flex gap-2">
         <Button variant="secondary" className="flex-1" onClick={trocarEmpresa}>

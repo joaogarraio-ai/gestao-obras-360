@@ -18,7 +18,7 @@ export default function ComprasTab({ obra }: { obra: Obra }) {
   const { db, addItem, updateItem, removeItem, addCompraMaterial } = useStore()
   const etapas = etapasDaObra(db, obra.id)
   const [mostrarForm, setMostrarForm] = useState(false)
-  const [comprando, setComprando] = useState<{ s: SolicitacaoCompra; valor: string; nota: string; fornecedorId: string } | null>(null)
+  const [comprando, setComprando] = useState<{ s: SolicitacaoCompra; valor: string; nota: string; fornecedorId: string; entrarEstoque: boolean } | null>(null)
   const formVazio = {
     descricao: '',
     quantidade: '',
@@ -82,6 +82,21 @@ export default function ComprasTab({ obra }: { obra: Obra }) {
       solicitacaoId: comprando.s.id,
     })
     updateItem('solicitacoesCompra', comprando.s.id, { status: 'comprada', compraId: compra.id })
+    if (comprando.entrarEstoque && comprando.s.quantidade > 0) {
+      const nome = comprando.s.descricao
+      const material =
+        db.materiaisEstoque.find((m) => m.nome.toLowerCase() === nome.toLowerCase()) ??
+        addItem('materiaisEstoque', { nome, unidade: comprando.s.unidade })
+      addItem('movimentosEstoque', {
+        materialId: material.id,
+        obraId: obra.id,
+        data: toISODate(new Date()),
+        tipo: 'entrada',
+        quantidade: comprando.s.quantidade,
+        valorUnitario: parseMoneyInput(comprando.valor) / comprando.s.quantidade,
+        compraId: compra.id,
+      })
+    }
     setComprando(null)
   }
 
@@ -170,6 +185,17 @@ export default function ComprasTab({ obra }: { obra: Obra }) {
               <Input value={comprando.nota} onChange={(e) => setComprando({ ...comprando, nota: e.target.value })} />
             </Field>
           </div>
+          {comprando.s.quantidade > 0 && (
+            <label className="flex items-center gap-2 text-sm text-stone-700">
+              <input
+                type="checkbox"
+                className="accent-amber-700"
+                checked={comprando.entrarEstoque}
+                onChange={(e) => setComprando({ ...comprando, entrarEstoque: e.target.checked })}
+              />
+              Dar entrada de {formatNumero(comprando.s.quantidade)} {comprando.s.unidade} no estoque da obra
+            </label>
+          )}
           <div className="flex gap-2">
             <Button onClick={registrarCompra} className="flex-1">
               Confirmar compra
@@ -230,7 +256,7 @@ export default function ComprasTab({ obra }: { obra: Obra }) {
                       variant="secondary"
                       className="w-full mt-2"
                       onClick={() =>
-                        setComprando({ s, valor: String(s.valorEstimado).replace('.', ','), nota: '', fornecedorId: s.fornecedorId ?? '' })
+                        setComprando({ s, valor: String(s.valorEstimado).replace('.', ','), nota: '', fornecedorId: s.fornecedorId ?? '', entrarEstoque: true })
                       }
                     >
                       Registrar compra

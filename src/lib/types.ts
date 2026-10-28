@@ -191,6 +191,36 @@ export interface DiarioObra {
   fotos: string[]
 }
 
+/** Material controlado no almoxarifado (catálogo único para todas as obras). */
+export interface MaterialEstoque {
+  id: string
+  nome: string
+  unidade: string
+  /** Abaixo disso o app avisa para comprar. */
+  estoqueMinimo?: number
+}
+
+export type TipoMovimentoEstoque = 'entrada' | 'saida' | 'transferencia'
+
+export interface MovimentoEstoque {
+  id: string
+  materialId: string
+  /** Almoxarifado de onde sai (ou onde entra, na entrada). */
+  obraId: string
+  /** Só na transferência: obra que recebe. */
+  obraDestinoId?: string
+  data: string // yyyy-mm-dd
+  tipo: TipoMovimentoEstoque
+  quantidade: number
+  /** Custo unitário na entrada, para valorizar o estoque. */
+  valorUnitario?: number
+  /** Na saída: em que etapa o material foi aplicado. */
+  etapaId?: string
+  responsavel?: string
+  observacao?: string
+  compraId?: string
+}
+
 export interface Database {
   trabalhadores: Trabalhador[]
   obras: Obra[]
@@ -206,6 +236,8 @@ export interface Database {
   medicoes: Medicao[]
   lancamentos: LancamentoFinanceiro[]
   diarios: DiarioObra[]
+  materiaisEstoque: MaterialEstoque[]
+  movimentosEstoque: MovimentoEstoque[]
 }
 
 /** Coleções com CRUD genérico no store. */
@@ -217,6 +249,8 @@ export type ColecaoGenerica =
   | 'medicoes'
   | 'lancamentos'
   | 'diarios'
+  | 'materiaisEstoque'
+  | 'movimentosEstoque'
 
 export const CATEGORIA_LABEL: Record<CategoriaCusto, string> = {
   material: 'Material',
@@ -236,6 +270,12 @@ export const STATUS_MEDICAO_LABEL: Record<StatusMedicao, string> = {
   aberta: 'Em aberto',
   aprovada: 'Aprovada',
   paga: 'Paga',
+}
+
+export const TIPO_MOVIMENTO_LABEL: Record<TipoMovimentoEstoque, string> = {
+  entrada: 'Entrada',
+  saida: 'Saída (consumo)',
+  transferencia: 'Transferência',
 }
 
 export const CLIMA_LABEL: Record<Clima, string> = {

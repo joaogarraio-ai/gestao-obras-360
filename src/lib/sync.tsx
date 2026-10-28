@@ -20,6 +20,8 @@ const COLECOES = [
   'medicoes',
   'lancamentos',
   'diarios',
+  'materiaisEstoque',
+  'movimentosEstoque',
 ] as const satisfies readonly (keyof Database)[]
 
 type Colecao = (typeof COLECOES)[number]
