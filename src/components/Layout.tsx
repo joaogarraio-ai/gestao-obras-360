@@ -1,4 +1,14 @@
 import { NavLink, Outlet } from 'react-router-dom'
+import { useSync, type StatusSync } from '../lib/sync'
+
+const ICONE_SYNC: Record<StatusSync, { icone: string; titulo: string }> = {
+  local: { icone: '📱', titulo: 'Dados só neste aparelho' },
+  carregando: { icone: '⏳', titulo: 'Carregando' },
+  sincronizado: { icone: '☁️', titulo: 'Sincronizado' },
+  enviando: { icone: '🔄', titulo: 'Enviando' },
+  offline: { icone: '📴', titulo: 'Sem internet: as mudanças serão enviadas depois' },
+  erro: { icone: '⚠️', titulo: 'Erro ao sincronizar' },
+}
 
 const NAV_ITEMS = [
   { to: '/', label: 'Início', icon: '🏠' },
@@ -11,11 +21,18 @@ const NAV_ITEMS = [
 ]
 
 export default function Layout() {
+  const { status, empresa } = useSync()
+  const sync = ICONE_SYNC[status]
   return (
     <div className="min-h-screen flex flex-col bg-stone-50">
       <header className="no-print sticky top-0 z-10 bg-amber-800 text-white px-4 py-3 flex items-center gap-2 shadow-sm">
         <span className="text-xl">👷</span>
-        <span className="font-bold text-lg flex-1">Obra 360</span>
+        <span className="font-bold text-lg flex-1 truncate">
+          Obra 360{empresa && <span className="font-normal text-sm text-amber-100"> · {empresa.nome}</span>}
+        </span>
+        <NavLink to="/conta" className="text-xl leading-none rounded-lg p-1.5 hover:bg-amber-900/40" aria-label={sync.titulo} title={sync.titulo}>
+          {sync.icone}
+        </NavLink>
         <NavLink
           to="/cadastros"
           className={({ isActive }) =>
