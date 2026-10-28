@@ -1,3 +1,4 @@
+import { Pencil, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { useStore } from '../../lib/store'
 import { Button, Card, EmptyState, Field, Input } from '../../components/ui'
@@ -53,8 +54,8 @@ export default function FornecedoresTab() {
             ) : (
               <>
                 <div>
-                  <p className="font-semibold text-stone-800">{f.nome}</p>
-                  {f.cidade && <p className="text-xs text-stone-500">{f.cidade}</p>}
+                  <p className="font-semibold text-slate-800">{f.nome}</p>
+                  {f.cidade && <p className="text-xs text-slate-500">{f.cidade}</p>}
                 </div>
                 <div className="flex gap-1 shrink-0">
                   <Button
@@ -66,7 +67,7 @@ export default function FornecedoresTab() {
                       setEditCidade(f.cidade ?? '')
                     }}
                   >
-                    ✏️
+                    <Pencil className="h-4 w-4" />
                   </Button>
                   <Button
                     variant="ghost"
@@ -75,7 +76,7 @@ export default function FornecedoresTab() {
                       if (confirm(`Remover ${f.nome}?`)) removeFornecedor(f.id)
                     }}
                   >
-                    🗑️
+                    <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
               </>

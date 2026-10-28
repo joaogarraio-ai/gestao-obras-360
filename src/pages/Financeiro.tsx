@@ -1,3 +1,4 @@
+import { Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { useStore } from '../lib/store'
 import { mesesEntre, movimentos } from '../lib/gestao'
@@ -55,7 +56,7 @@ export default function Financeiro() {
         ))}
       </Select>
 
-      <div className="grid grid-cols-2 gap-2 mb-4">
+      <div className="grid grid-cols-2 gap-3 mb-4">
         <Stat label="Saldo realizado" value={<span className={entradasReal - saidasReal < 0 ? 'text-red-600' : 'text-green-700'}>{formatBRL(entradasReal - saidasReal)}</span>} hint={`Entrou ${formatBRL(entradasReal)} · saiu ${formatBRL(saidasReal)}`} />
         <Stat label="Saldo projetado" value={formatBRL(entradasReal - saidasReal + aReceber - aPagar)} hint={`A receber ${formatBRL(aReceber)} · a pagar ${formatBRL(aPagar)}`} />
       </div>
@@ -76,8 +77,8 @@ export default function Financeiro() {
           )}
 
           {form && (
-            <Card className="p-4 space-y-3 border-amber-400">
-              <p className="font-semibold text-stone-700">{form.tipo === 'receita' ? 'Conta a receber' : 'Conta a pagar'}</p>
+            <Card className="p-4 space-y-3 border-brand-400">
+              <p className="font-semibold text-slate-700">{form.tipo === 'receita' ? 'Conta a receber' : 'Conta a pagar'}</p>
               <Field label="Descrição">
                 <Input value={form.descricao} onChange={(e) => setForm({ ...form, descricao: e.target.value })} placeholder={form.tipo === 'receita' ? 'Ex: Parcela 2 do cliente' : 'Ex: Aluguel de andaime'} />
               </Field>
@@ -111,8 +112,8 @@ export default function Financeiro() {
                   </Select>
                 </Field>
               )}
-              <label className="flex items-center gap-2 text-sm text-stone-700">
-                <input type="checkbox" checked={form.pago} onChange={(e) => setForm({ ...form, pago: e.target.checked })} className="accent-amber-700" />
+              <label className="flex items-center gap-2 text-sm text-slate-700">
+                <input type="checkbox" checked={form.pago} onChange={(e) => setForm({ ...form, pago: e.target.checked })} className="accent-brand-700" />
                 Já foi {form.tipo === 'receita' ? 'recebido' : 'pago'}
               </label>
               <div className="flex gap-2">
@@ -131,18 +132,18 @@ export default function Financeiro() {
 
           {todos.some((m) => !m.realizado && (m.origem === 'Medições' || m.origem === 'Compra aprovada')) && (
             <Card className="p-3">
-              <p className="text-sm font-semibold text-stone-700 mb-1">Previstos de medições e compras aprovadas</p>
+              <p className="text-sm font-semibold text-slate-700 mb-1">Previstos de medições e compras aprovadas</p>
               {todos
                 .filter((m) => !m.realizado && (m.origem === 'Medições' || m.origem === 'Compra aprovada'))
                 .map((m, i) => (
-                  <div key={i} className="flex justify-between text-sm py-1 border-t border-stone-100">
-                    <span className="text-stone-700">
-                      {m.descricao} <span className="text-xs text-stone-400">({m.origem})</span>
+                  <div key={i} className="flex justify-between text-sm py-1 border-t border-slate-100">
+                    <span className="text-slate-700">
+                      {m.descricao} <span className="text-xs text-slate-400">({m.origem})</span>
                     </span>
                     <span className="whitespace-nowrap">{formatBRL(m.valor)}</span>
                   </div>
                 ))}
-              <p className="text-xs text-stone-400 mt-1">Para baixar, marque a medição como paga ou registre a compra na obra.</p>
+              <p className="text-xs text-slate-400 mt-1">Para baixar, marque a medição como paga ou registre a compra na obra.</p>
             </Card>
           )}
         </div>
@@ -154,18 +155,18 @@ export default function Financeiro() {
     const ordenados = [...itens].sort((a, b) => a.vencimento.localeCompare(b.vencimento))
     return (
       <div>
-        <p className="text-sm font-semibold text-stone-600 mb-1.5">
+        <p className="text-sm font-semibold text-slate-600 mb-1.5">
           {titulo} ({formatBRL(ordenados.reduce((a, l) => a + l.valor, 0))})
         </p>
-        {ordenados.length === 0 && <p className="text-sm text-stone-400 mb-2">Nada em aberto.</p>}
+        {ordenados.length === 0 && <p className="text-sm text-slate-400 mb-2">Nada em aberto.</p>}
         <div className="space-y-2">
           {ordenados.map((l) => {
             const vencido = l.vencimento < hoje
             return (
               <Card key={l.id} className="p-3 flex items-center justify-between gap-2">
                 <div className="min-w-0">
-                  <p className="font-semibold text-stone-800 truncate">{l.descricao}</p>
-                  <p className="text-xs text-stone-500 truncate">
+                  <p className="font-semibold text-slate-800 truncate">{l.descricao}</p>
+                  <p className="text-xs text-slate-500 truncate">
                     {formatDatePt(l.vencimento)} {vencido && <Badge tone="red">vencido</Badge>} · {db.obras.find((o) => o.id === l.obraId)?.nome ?? 'Geral'}
                   </p>
                 </div>
@@ -181,7 +182,7 @@ export default function Financeiro() {
                       if (confirm('Excluir este lançamento?')) removeItem('lancamentos', l.id)
                     }}
                   >
-                    🗑️
+                    <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
               </Card>
@@ -214,23 +215,23 @@ function FluxoMensal({ movs }: { movs: Movimento[] }) {
           {linhas.map((l) => (
             <div key={l.mes.chave} className="flex-1 min-w-10 flex flex-col items-center justify-end h-full">
               <div className="flex items-end gap-0.5 flex-1 w-full justify-center">
-                <div className={`w-3 rounded-t bg-green-600 ${l.mes.chave > hojeMes ? 'opacity-40' : ''}`} style={{ height: `${(l.entradas / max) * 100}%` }} title={`Entradas ${formatBRL(l.entradas)}`} />
-                <div className={`w-3 rounded-t bg-red-500 ${l.mes.chave > hojeMes ? 'opacity-40' : ''}`} style={{ height: `${(l.saidas / max) * 100}%` }} title={`Saídas ${formatBRL(l.saidas)}`} />
+                <div className={`w-full max-w-4 rounded-t-md bg-emerald-400 ${l.mes.chave > hojeMes ? 'opacity-40' : ''}`} style={{ height: `${(l.entradas / max) * 100}%` }} title={`Entradas ${formatBRL(l.entradas)}`} />
+                <div className={`w-full max-w-4 rounded-t-md bg-slate-300 ${l.mes.chave > hojeMes ? 'opacity-40' : ''}`} style={{ height: `${(l.saidas / max) * 100}%` }} title={`Saídas ${formatBRL(l.saidas)}`} />
               </div>
-              <span className="text-[10px] text-stone-500 mt-1 whitespace-nowrap">{l.mes.label}</span>
+              <span className="text-[10px] text-slate-500 mt-1 whitespace-nowrap">{l.mes.label}</span>
             </div>
           ))}
         </div>
-        <div className="flex gap-3 text-xs text-stone-500 mt-2">
-          <span>🟩 Entradas</span>
-          <span>🟥 Saídas</span>
+        <div className="flex gap-3 text-xs text-slate-500 mt-2">
+          <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-emerald-400" /> Entradas</span>
+          <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-slate-300" /> Saídas</span>
           <span>Meses futuros mais claros (previsto)</span>
         </div>
       </Card>
       <Card className="p-3 overflow-x-auto">
         <table className="w-full text-xs sm:text-sm">
           <thead>
-            <tr className="text-xs text-stone-500 text-right">
+            <tr className="text-xs text-slate-500 text-right">
               <th className="text-left py-1">Mês</th>
               <th className="py-1 px-1">Entradas</th>
               <th className="py-1 px-1">Saídas</th>
@@ -240,9 +241,9 @@ function FluxoMensal({ movs }: { movs: Movimento[] }) {
           </thead>
           <tbody>
             {linhas.map((l) => (
-              <tr key={l.mes.chave} className="border-t border-stone-100 text-right">
+              <tr key={l.mes.chave} className="border-t border-slate-100 text-right">
                 <td className="text-left py-1.5 whitespace-nowrap">
-                  {l.mes.label} {l.previsto && <span className="text-[10px] text-amber-700">prev.</span>}
+                  {l.mes.label} {l.previsto && <span className="text-[10px] text-brand-700">prev.</span>}
                 </td>
                 <td className="py-1.5 px-1 whitespace-nowrap text-green-700">{formatBRL(l.entradas)}</td>
                 <td className="py-1.5 px-1 whitespace-nowrap text-red-600">{formatBRL(l.saidas)}</td>
@@ -252,7 +253,7 @@ function FluxoMensal({ movs }: { movs: Movimento[] }) {
             ))}
           </tbody>
         </table>
-        <p className="text-xs text-stone-400 mt-2">Inclui diárias, tarefas, materiais, despesas, medições, compras aprovadas e contas lançadas.</p>
+        <p className="text-xs text-slate-400 mt-2">Inclui diárias, tarefas, materiais, despesas, medições, compras aprovadas e contas lançadas.</p>
       </Card>
     </div>
   )

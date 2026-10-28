@@ -34,7 +34,7 @@ export default function Conta() {
       <div>
         <PageTitle title="Conta e sincronização" />
         <div className="space-y-3">
-          <Card className="p-4 text-sm text-stone-600 space-y-2">
+          <Card className="p-4 text-sm text-slate-600 space-y-2">
             <p>{STATUS_TEXTO.local}</p>
             <p>Para a equipe compartilhar os dados, o app precisa ser ligado a um banco de dados Supabase. O passo a passo está no README do projeto.</p>
           </Card>
@@ -46,7 +46,7 @@ export default function Conta() {
 
   async function compartilharConvite() {
     if (!empresa) return
-    const texto = `Entre na empresa ${empresa.nome} no Obra 360: ${window.location.origin}${window.location.pathname}\nCódigo de convite: ${empresa.codigo_convite}`
+    const texto = `Entre na empresa ${empresa.nome} no JotaP Obra 360: ${window.location.origin}${window.location.pathname}\nCódigo de convite: ${empresa.codigo_convite}`
     if (navigator.share) {
       await navigator.share({ text: texto }).catch(() => undefined)
     } else {
@@ -70,8 +70,8 @@ export default function Conta() {
       <PageTitle title="Conta e sincronização" subtitle={session?.user.email ?? undefined} />
 
       <Card className="p-4">
-        <p className="text-sm text-stone-700">{STATUS_TEXTO[status]}</p>
-        {pendentes > 0 && <p className="text-xs text-stone-500 mt-1">{pendentes} mudança(s) aguardando envio.</p>}
+        <p className="text-sm text-slate-700">{STATUS_TEXTO[status]}</p>
+        {pendentes > 0 && <p className="text-xs text-slate-500 mt-1">{pendentes} mudança(s) aguardando envio.</p>}
         {status === 'erro' && ultimoErro && <p className="text-xs text-red-600 mt-1">{ultimoErro}</p>}
         <Button variant="secondary" className="mt-3" onClick={sincronizarAgora}>
           Sincronizar agora
@@ -81,20 +81,20 @@ export default function Conta() {
       {empresa && (
         <Card className="p-4 space-y-3">
           <div>
-            <p className="text-xs text-stone-500">Empresa</p>
-            <p className="font-semibold text-stone-800">{empresa.nome}</p>
+            <p className="text-xs text-slate-500">Empresa</p>
+            <p className="font-semibold text-slate-800">{empresa.nome}</p>
           </div>
           <div>
-            <p className="text-xs text-stone-500">Código de convite (passe para a equipe)</p>
-            <p className="font-mono text-2xl font-bold tracking-widest text-amber-800">{empresa.codigo_convite}</p>
+            <p className="text-xs text-slate-500">Código de convite (passe para a equipe)</p>
+            <p className="font-mono text-2xl font-bold tracking-widest text-brand-800">{empresa.codigo_convite}</p>
           </div>
           <Button onClick={compartilharConvite}>{copiado ? 'Convite copiado ✓' : 'Enviar convite'}</Button>
           <div>
-            <p className="text-xs text-stone-500 mb-1">Equipe ({membros.length})</p>
+            <p className="text-xs text-slate-500 mb-1">Equipe ({membros.length})</p>
             <div className="space-y-1">
               {membros.map((m) => (
                 <div key={m.user_id} className="flex items-center justify-between text-sm">
-                  <span className="text-stone-700 truncate">{m.email ?? m.user_id}</span>
+                  <span className="text-slate-700 truncate">{m.email ?? m.user_id}</span>
                   {m.papel === 'admin' && <Badge tone="amber">admin</Badge>}
                 </div>
               ))}
@@ -112,7 +112,7 @@ export default function Conta() {
             </Button>
           </div>
         </Field>
-        {msgSenha && <p className="text-xs text-stone-600">{msgSenha}</p>}
+        {msgSenha && <p className="text-xs text-slate-600">{msgSenha}</p>}
       </Card>
 
       <Backup />

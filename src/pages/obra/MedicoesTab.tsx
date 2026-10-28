@@ -1,3 +1,4 @@
+import { Pencil, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { useStore } from '../../lib/store'
 import { etapasDaObra, formatPercent, percentualMedidoContrato, valorMedicao } from '../../lib/gestao'
@@ -52,18 +53,18 @@ export default function MedicoesTab({ obra }: { obra: Obra }) {
 
   return (
     <div className="space-y-3">
-      <p className="text-sm text-stone-500">
+      <p className="text-sm text-slate-500">
         Cadastre os contratos de empreitada e meça o avanço de cada um. Medições aprovadas entram como contas a pagar; pagas entram no realizado.
       </p>
 
       {!formContrato && (
-        <Button className="w-full" onClick={() => setFormContrato({ empreiteiro: '', descricao: '', valorTotal: '', retencao: '5', etapaId: '' })}>
+        <Button className="w-full sm:w-auto" onClick={() => setFormContrato({ empreiteiro: '', descricao: '', valorTotal: '', retencao: '5', etapaId: '' })}>
           + Novo contrato de empreiteiro
         </Button>
       )}
 
       {formContrato && (
-        <Card className="p-4 space-y-3 border-amber-400">
+        <Card className="p-4 space-y-3 border-brand-400">
           <Field label="Empreiteiro">
             <Input value={formContrato.empreiteiro} onChange={(e) => setFormContrato({ ...formContrato, empreiteiro: e.target.value })} />
           </Field>
@@ -101,7 +102,7 @@ export default function MedicoesTab({ obra }: { obra: Obra }) {
 
       {medindo && (
         <Card className="p-4 space-y-3 border-green-400">
-          <p className="font-semibold text-stone-700">Nova medição: {medindo.contrato.empreiteiro}</p>
+          <p className="font-semibold text-slate-700">Nova medição: {medindo.contrato.empreiteiro}</p>
           <div className="grid grid-cols-2 gap-2">
             <Field label="Data">
               <Input type="date" value={medindo.data} onChange={(e) => setMedindo({ ...medindo, data: e.target.value })} />
@@ -110,7 +111,7 @@ export default function MedicoesTab({ obra }: { obra: Obra }) {
               <Input value={medindo.percentual} onChange={(e) => setMedindo({ ...medindo, percentual: e.target.value })} inputMode="decimal" />
             </Field>
           </div>
-          <p className="text-sm text-stone-600">
+          <p className="text-sm text-slate-600">
             Valor bruto {formatBRL((medindo.contrato.valorTotal * parseMoneyInput(medindo.percentual)) / 100)} · já medido{' '}
             {percentualMedidoContrato(db, medindo.contrato.id)}%
           </p>
@@ -139,19 +140,19 @@ export default function MedicoesTab({ obra }: { obra: Obra }) {
           <Card key={c.id} className="p-3">
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
-                <p className="font-semibold text-stone-800">{c.empreiteiro}</p>
-                <p className="text-xs text-stone-500">
+                <p className="font-semibold text-slate-800">{c.empreiteiro}</p>
+                <p className="text-xs text-slate-500">
                   {c.descricao}
                   {etapas.find((e) => e.id === c.etapaId) ? ` · ${etapas.find((e) => e.id === c.etapaId)?.nome}` : ''}
                 </p>
               </div>
               <div className="text-right shrink-0">
-                <p className="font-semibold text-stone-800 whitespace-nowrap">{formatBRL(c.valorTotal)}</p>
-                <p className="text-xs text-stone-500">Retenção {c.retencaoPercentual}%</p>
+                <p className="font-semibold text-slate-800 whitespace-nowrap">{formatBRL(c.valorTotal)}</p>
+                <p className="text-xs text-slate-500">Retenção {c.retencaoPercentual}%</p>
               </div>
             </div>
             <div className="mt-2">
-              <div className="flex justify-between text-xs text-stone-600 mb-1">
+              <div className="flex justify-between text-xs text-slate-600 mb-1">
                 <span>Medido {formatPercent(medido / 100, 0)}</span>
                 <span>
                   Pago {formatBRL(pago)} · Retido {formatBRL(retido)}
@@ -161,17 +162,17 @@ export default function MedicoesTab({ obra }: { obra: Obra }) {
             </div>
 
             {medicoes.length > 0 && (
-              <div className="mt-3 divide-y divide-stone-100">
+              <div className="mt-3 divide-y divide-slate-100">
                 {medicoes.map((m, i) => {
                   const v = valorMedicao(m, c)
                   return (
                     <div key={m.id} className="py-2 text-sm">
                       <div className="flex items-center justify-between gap-2">
                         <div>
-                          <p className="text-stone-800">
+                          <p className="text-slate-800">
                             {i + 1}ª medição · {formatDatePt(m.data)} · {m.percentualPeriodo}%
                           </p>
-                          <p className="text-xs text-stone-500">
+                          <p className="text-xs text-slate-500">
                             Bruto {formatBRL(v.bruto)} − retenção {formatBRL(v.retencao)} = <b>{formatBRL(v.liquido)}</b>
                             {m.observacao ? ` · ${m.observacao}` : ''}
                           </p>
@@ -233,7 +234,7 @@ export default function MedicoesTab({ obra }: { obra: Obra }) {
                   })
                 }
               >
-                ✏️
+                <Pencil className="h-4 w-4" />
               </Button>
               <Button
                 variant="ghost"
@@ -243,7 +244,7 @@ export default function MedicoesTab({ obra }: { obra: Obra }) {
                   removeItem('contratos', c.id)
                 }}
               >
-                🗑️
+                <Trash2 className="h-4 w-4" />
               </Button>
             </div>
           </Card>

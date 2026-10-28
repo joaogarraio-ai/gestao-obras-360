@@ -1,3 +1,4 @@
+import { Printer } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useStore } from '../lib/store'
 import { addDays, formatDatePt, getMondayOfWeek, getWeekRange } from '../lib/dates'
@@ -84,10 +85,10 @@ export default function Relatorio() {
           ◀
         </Button>
         <div className="text-center flex-1">
-          <p className="font-semibold text-stone-800 text-sm">
+          <p className="font-semibold text-slate-800 text-sm">
             {formatDatePt(start)} – {formatDatePt(end)}
           </p>
-          <button className="text-xs text-amber-700 underline" onClick={() => setMondayIso(getMondayOfWeek())}>
+          <button className="text-xs text-brand-700 underline" onClick={() => setMondayIso(getMondayOfWeek())}>
             ir para semana atual
           </button>
         </div>
@@ -101,7 +102,7 @@ export default function Relatorio() {
           📤 Compartilhar
         </Button>
         <Button variant="secondary" onClick={() => window.print()} className="flex-1">
-          🖨️ Imprimir / PDF
+          <Printer className="h-4 w-4" /> Imprimir / PDF
         </Button>
       </div>
 
@@ -114,9 +115,9 @@ export default function Relatorio() {
         </div>
 
         <Card className="p-4">
-          <h2 className="font-bold text-stone-800 mb-3">Pagamento dos trabalhadores</h2>
+          <h2 className="font-bold text-slate-800 mb-3">Pagamento dos trabalhadores</h2>
           {relatorio.pagamentos.length === 0 ? (
-            <p className="text-sm text-stone-400">Nenhum dia lançado nesse período.</p>
+            <p className="text-sm text-slate-400">Nenhum dia lançado nesse período.</p>
           ) : (
             <div className="space-y-3">
               {(['pix', 'dinheiro'] as const).map((forma) => {
@@ -124,25 +125,25 @@ export default function Relatorio() {
                 if (linhas.length === 0) return null
                 return (
                   <div key={forma}>
-                    <p className="text-xs font-semibold text-stone-500 uppercase mb-1.5">{forma === 'pix' ? 'PIX' : 'Dinheiro'}</p>
+                    <p className="text-xs font-semibold text-slate-500 uppercase mb-1.5">{forma === 'pix' ? 'PIX' : 'Dinheiro'}</p>
                     <div className="space-y-2.5">
                       {linhas.map((p) => (
                         <div key={p.chave} className="text-sm">
                           <div className="flex items-center justify-between gap-2">
                             <div className="min-w-0">
-                              <p className="font-medium text-stone-800 truncate">{p.nome}</p>
-                              <p className="text-xs text-stone-500 truncate">
+                              <p className="font-medium text-slate-800 truncate">{p.nome}</p>
+                              <p className="text-xs text-slate-500 truncate">
                                 {p.funcao}
                                 {p.totalDias > 0 ? ` · ${p.totalDias}d (${p.diasCompletos} completos, ${p.meiosDias} meio-dia)` : ''}
                                 {p.chavePix ? ` · PIX: ${p.chavePix}` : ''}
                               </p>
                             </div>
-                            <p className="font-semibold text-stone-800 whitespace-nowrap">{formatBRL(p.valorTotal)}</p>
+                            <p className="font-semibold text-slate-800 whitespace-nowrap">{formatBRL(p.valorTotal)}</p>
                           </div>
                           {p.tarefas.length > 0 && (
                             <div className="mt-1 pl-2 space-y-0.5">
                               {p.tarefas.map((t, i) => (
-                                <div key={i} className="flex justify-between text-xs text-stone-500">
+                                <div key={i} className="flex justify-between text-xs text-slate-500">
                                   <span className="truncate pr-2">
                                     {formatDatePt(t.data)} · {t.descricao} ({t.obraNome})
                                   </span>
@@ -154,36 +155,36 @@ export default function Relatorio() {
                         </div>
                       ))}
                     </div>
-                    <p className="text-right text-xs text-stone-500 mt-1">
+                    <p className="text-right text-xs text-slate-500 mt-1">
                       Subtotal {forma === 'pix' ? 'PIX' : 'dinheiro'}:{' '}
-                      <span className="font-semibold text-stone-700">{formatBRL(forma === 'pix' ? relatorio.totalPix : relatorio.totalDinheiro)}</span>
+                      <span className="font-semibold text-slate-700">{formatBRL(forma === 'pix' ? relatorio.totalPix : relatorio.totalDinheiro)}</span>
                     </p>
                   </div>
                 )
               })}
-              <div className="flex justify-between pt-2 border-t border-stone-200">
-                <p className="font-bold text-stone-800">Total mão de obra</p>
-                <p className="font-bold text-stone-800">{formatBRL(relatorio.totalMaoDeObra)}</p>
+              <div className="flex justify-between pt-2 border-t border-slate-200">
+                <p className="font-bold text-slate-800">Total mão de obra</p>
+                <p className="font-bold text-slate-800">{formatBRL(relatorio.totalMaoDeObra)}</p>
               </div>
             </div>
           )}
         </Card>
 
         <Card className="p-4">
-          <h2 className="font-bold text-stone-800 mb-3">Materiais</h2>
+          <h2 className="font-bold text-slate-800 mb-3">Materiais</h2>
           {relatorio.materiais.length === 0 ? (
-            <p className="text-sm text-stone-400">Nenhuma compra lançada nesse período.</p>
+            <p className="text-sm text-slate-400">Nenhuma compra lançada nesse período.</p>
           ) : (
             <div className="space-y-3">
               {relatorio.materiais.map((m) => (
                 <div key={m.fornecedorId}>
-                  <div className="flex justify-between text-sm font-medium text-stone-700 mb-1">
+                  <div className="flex justify-between text-sm font-medium text-slate-700 mb-1">
                     <p>{m.fornecedorNome}</p>
                     <p>{formatBRL(m.totalFornecedor)}</p>
                   </div>
                   <div className="space-y-1">
                     {m.itens.map((item, i) => (
-                      <div key={i} className="flex justify-between text-xs text-stone-500 pl-2">
+                      <div key={i} className="flex justify-between text-xs text-slate-500 pl-2">
                         <span className="truncate pr-2">
                           {formatDatePt(item.data)} · {item.descricao} ({item.obraNome})
                           {item.numeroNota ? ` · NF ${item.numeroNota}` : ''}
@@ -194,41 +195,41 @@ export default function Relatorio() {
                   </div>
                 </div>
               ))}
-              <div className="flex justify-between pt-2 border-t border-stone-200">
-                <p className="font-bold text-stone-800">Total materiais</p>
-                <p className="font-bold text-stone-800">{formatBRL(relatorio.totalMateriais)}</p>
+              <div className="flex justify-between pt-2 border-t border-slate-200">
+                <p className="font-bold text-slate-800">Total materiais</p>
+                <p className="font-bold text-slate-800">{formatBRL(relatorio.totalMateriais)}</p>
               </div>
             </div>
           )}
         </Card>
 
         <Card className="p-4">
-          <h2 className="font-bold text-stone-800 mb-3">Despesas</h2>
+          <h2 className="font-bold text-slate-800 mb-3">Despesas</h2>
           {relatorio.despesas.length === 0 ? (
-            <p className="text-sm text-stone-400">Nenhuma despesa lançada nesse período.</p>
+            <p className="text-sm text-slate-400">Nenhuma despesa lançada nesse período.</p>
           ) : (
             <div className="space-y-2">
               {relatorio.despesas.map((d, i) => (
                 <div key={i} className="flex justify-between text-sm">
                   <div>
-                    <p className="text-stone-800">{d.descricao}</p>
-                    <p className="text-xs text-stone-500">
+                    <p className="text-slate-800">{d.descricao}</p>
+                    <p className="text-xs text-slate-500">
                       {formatDatePt(d.data)}
                       {d.obraNome ? ` · ${d.obraNome}` : ''}
                     </p>
                   </div>
-                  <p className="font-semibold text-stone-800 whitespace-nowrap">{formatBRL(d.valor)}</p>
+                  <p className="font-semibold text-slate-800 whitespace-nowrap">{formatBRL(d.valor)}</p>
                 </div>
               ))}
-              <div className="flex justify-between pt-2 border-t border-stone-200">
-                <p className="font-bold text-stone-800">Total despesas</p>
-                <p className="font-bold text-stone-800">{formatBRL(relatorio.totalDespesas)}</p>
+              <div className="flex justify-between pt-2 border-t border-slate-200">
+                <p className="font-bold text-slate-800">Total despesas</p>
+                <p className="font-bold text-slate-800">{formatBRL(relatorio.totalDespesas)}</p>
               </div>
             </div>
           )}
         </Card>
 
-        <Card className="p-4 bg-amber-800 text-white border-amber-800">
+        <Card className="p-4 bg-brand-800 text-white border-brand-800">
           <div className="flex justify-between items-center">
             <p className="font-bold text-lg">TOTAL GERAL</p>
             <p className="font-bold text-lg">{formatBRL(relatorio.totalGeral)}</p>

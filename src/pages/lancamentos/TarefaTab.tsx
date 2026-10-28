@@ -1,3 +1,4 @@
+import { Pencil, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { useStore } from '../../lib/store'
 import { toISODate, formatDatePt } from '../../lib/dates'
@@ -103,7 +104,7 @@ export default function TarefaTab() {
       {semObras && <EmptyState text="Cadastre ao menos uma obra em Cadastros para lançar pagamentos por tarefa." />}
 
       {!semObras && !mostrarForm && (
-        <Button onClick={iniciarNovo} className="w-full mb-3">
+        <Button onClick={iniciarNovo} className="w-full sm:w-auto mb-3">
           + Novo pagamento por tarefa
         </Button>
       )}
@@ -181,8 +182,8 @@ export default function TarefaTab() {
       )}
 
       {tarefasOrdenadas.length > 0 && (
-        <p className="text-sm text-stone-500 mb-2">
-          Total lançado: <span className="font-semibold text-stone-800">{formatBRL(totalGeral)}</span>
+        <p className="text-sm text-slate-500 mb-2">
+          Total lançado: <span className="font-semibold text-slate-800">{formatBRL(totalGeral)}</span>
         </p>
       )}
 
@@ -190,17 +191,17 @@ export default function TarefaTab() {
         {tarefasOrdenadas.map((p) => (
           <Card key={p.id} className="p-3 flex items-center justify-between gap-2">
             <div className="min-w-0">
-              <p className="font-semibold text-stone-800 truncate">
-                {nomeDe(p)} {!p.trabalhadorId && <span className="text-xs text-stone-400">(avulso)</span>}
+              <p className="font-semibold text-slate-800 truncate">
+                {nomeDe(p)} {!p.trabalhadorId && <span className="text-xs text-slate-400">(avulso)</span>}
               </p>
-              <p className="text-xs text-stone-500 truncate">
+              <p className="text-xs text-slate-500 truncate">
                 {formatDatePt(p.data)} · {p.descricao} · {nomeObra(p.obraId)} · {p.formaPagamento === 'pix' ? 'PIX' : 'Dinheiro'}
               </p>
             </div>
             <div className="flex items-center gap-2 shrink-0">
-              <p className="font-semibold text-stone-800 whitespace-nowrap">{formatBRL(p.valor)}</p>
+              <p className="font-semibold text-slate-800 whitespace-nowrap">{formatBRL(p.valor)}</p>
               <Button variant="ghost" onClick={() => iniciarEdicao(p)} className="px-2">
-                ✏️
+                <Pencil className="h-4 w-4" />
               </Button>
               <Button
                 variant="ghost"
@@ -209,7 +210,7 @@ export default function TarefaTab() {
                 }}
                 className="px-2"
               >
-                🗑️
+                <Trash2 className="h-4 w-4" />
               </Button>
             </div>
           </Card>

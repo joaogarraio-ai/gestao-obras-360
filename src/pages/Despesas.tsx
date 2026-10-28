@@ -1,3 +1,4 @@
+import { Pencil, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { useStore } from '../lib/store'
 import { toISODate, formatDatePt } from '../lib/dates'
@@ -72,7 +73,7 @@ export default function Despesas() {
       <PageTitle title="Despesas" subtitle="Gasolina, frete e outros gastos da semana" />
 
       {!mostrarForm && (
-        <Button onClick={iniciarNovo} className="w-full mb-3">
+        <Button onClick={iniciarNovo} className="w-full sm:w-auto mb-3">
           + Nova despesa
         </Button>
       )}
@@ -125,8 +126,8 @@ export default function Despesas() {
       {despesasOrdenadas.length === 0 && !mostrarForm && <EmptyState text="Nenhuma despesa lançada ainda." />}
 
       {despesasOrdenadas.length > 0 && (
-        <p className="text-sm text-stone-500 mb-2">
-          Total lançado: <span className="font-semibold text-stone-800">{formatBRL(totalGeral)}</span>
+        <p className="text-sm text-slate-500 mb-2">
+          Total lançado: <span className="font-semibold text-slate-800">{formatBRL(totalGeral)}</span>
         </p>
       )}
 
@@ -134,16 +135,16 @@ export default function Despesas() {
         {despesasOrdenadas.map((d) => (
           <Card key={d.id} className="p-3 flex items-center justify-between gap-2">
             <div className="min-w-0">
-              <p className="font-semibold text-stone-800 truncate">{d.descricao}</p>
-              <p className="text-xs text-stone-500 truncate">
+              <p className="font-semibold text-slate-800 truncate">{d.descricao}</p>
+              <p className="text-xs text-slate-500 truncate">
                 {formatDatePt(d.data)} · {TIPO_DESPESA_LABEL[d.tipo]}
                 {d.obraId ? ` · ${nomeObra(d.obraId)}` : ''}
               </p>
             </div>
             <div className="flex items-center gap-2 shrink-0">
-              <p className="font-semibold text-stone-800 whitespace-nowrap">{formatBRL(d.valor)}</p>
+              <p className="font-semibold text-slate-800 whitespace-nowrap">{formatBRL(d.valor)}</p>
               <Button variant="ghost" onClick={() => iniciarEdicao(d)} className="px-2">
-                ✏️
+                <Pencil className="h-4 w-4" />
               </Button>
               <Button
                 variant="ghost"
@@ -152,7 +153,7 @@ export default function Despesas() {
                 }}
                 className="px-2"
               >
-                🗑️
+                <Trash2 className="h-4 w-4" />
               </Button>
             </div>
           </Card>

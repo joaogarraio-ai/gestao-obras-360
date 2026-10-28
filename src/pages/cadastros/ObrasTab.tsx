@@ -1,3 +1,4 @@
+import { Pencil, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { useStore } from '../../lib/store'
 import { Button, Card, EmptyState, Field, Input } from '../../components/ui'
@@ -48,7 +49,7 @@ export default function ObrasTab() {
               </div>
             ) : (
               <>
-                <p className="font-semibold text-stone-800">{o.nome}</p>
+                <p className="font-semibold text-slate-800">{o.nome}</p>
                 <div className="flex gap-1 shrink-0">
                   <Button
                     variant="ghost"
@@ -58,7 +59,7 @@ export default function ObrasTab() {
                       setEditNome(o.nome)
                     }}
                   >
-                    ✏️
+                    <Pencil className="h-4 w-4" />
                   </Button>
                   <Button
                     variant="ghost"
@@ -67,7 +68,7 @@ export default function ObrasTab() {
                       if (confirm(`Remover ${o.nome}?`)) removeObra(o.id)
                     }}
                   >
-                    🗑️
+                    <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
               </>

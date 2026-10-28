@@ -1,4 +1,4 @@
-# Obra 360 - Gestão de Obras
+# JotaP Obra 360 · Gestão de Obras
 
 🔗 **App:** https://joaogarraio-ai.github.io/gestao-obras-360/
 
@@ -49,6 +49,14 @@ Com o Supabase ligado, o app pede login e cada pessoa entra numa **empresa**. To
 6. Rode de novo o deploy (aba **Actions > Deploy no GitHub Pages > Run workflow**) ou faça qualquer push na `main`.
 
 Para desenvolver localmente com a nuvem, copie `.env.example` para `.env.local` e preencha as mesmas chaves.
+
+## Domínio próprio (obras.jotapentretenimento.com.br)
+
+1. No painel onde o domínio `jotapentretenimento.com.br` está registrado (ex: Registro.br), crie um registro DNS do tipo **CNAME** com nome `obras` apontando para `joaogarraio-ai.github.io`.
+2. No GitHub, em **Settings > Pages > Custom domain**, digite `obras.jotapentretenimento.com.br` e salve. Quando aparecer, marque **Enforce HTTPS**.
+3. No Supabase, em **Authentication > URL Configuration**, troque a **Site URL** para `https://obras.jotapentretenimento.com.br/` e adicione o mesmo endereço em **Redirect URLs** (pode manter o antigo também).
+
+O app usa caminhos relativos, então funciona tanto no endereço do GitHub quanto no domínio próprio sem mudar o código.
 
 ## Como usar no dia a dia
 
