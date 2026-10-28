@@ -83,3 +83,46 @@ export function Badge({ children, tone = 'default' }: { children: ReactNode; ton
   }
   return <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${tones[tone]}`}>{children}</span>
 }
+
+export function Tabs<T extends string>({ abas, ativa, onChange }: { abas: readonly { id: T; label: string }[]; ativa: T; onChange: (id: T) => void }) {
+  return (
+    <div className="no-print flex gap-1 mb-4 bg-stone-100 rounded-lg p-1 overflow-x-auto">
+      {abas.map((a) => (
+        <button
+          key={a.id}
+          onClick={() => onChange(a.id)}
+          className={`flex-1 whitespace-nowrap text-sm font-medium rounded-md px-3 py-2 transition-colors ${
+            ativa === a.id ? 'bg-white text-amber-800 shadow-sm' : 'text-stone-500'
+          }`}
+        >
+          {a.label}
+        </button>
+      ))}
+    </div>
+  )
+}
+
+export function ProgressBar({ value, tone = 'amber' }: { value: number; tone?: 'amber' | 'green' | 'red' | 'stone' }) {
+  const tones: Record<string, string> = {
+    amber: 'bg-amber-600',
+    green: 'bg-green-600',
+    red: 'bg-red-500',
+    stone: 'bg-stone-400',
+  }
+  const pct = Math.max(0, Math.min(1, value)) * 100
+  return (
+    <div className="h-2 w-full rounded-full bg-stone-200 overflow-hidden">
+      <div className={`h-full rounded-full ${tones[tone]}`} style={{ width: `${pct}%` }} />
+    </div>
+  )
+}
+
+export function Stat({ label, value, hint }: { label: string; value: ReactNode; hint?: ReactNode }) {
+  return (
+    <Card className="p-3">
+      <p className="text-xs text-stone-500">{label}</p>
+      <p className="text-lg font-bold text-stone-900 mt-0.5 truncate">{value}</p>
+      {hint && <p className="text-xs text-stone-500 mt-0.5">{hint}</p>}
+    </Card>
+  )
+}

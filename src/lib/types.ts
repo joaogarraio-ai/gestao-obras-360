@@ -15,6 +15,24 @@ export interface Obra {
   id: string
   nome: string
   ativo: boolean
+  cliente?: string
+  endereco?: string
+  dataInicio?: string // yyyy-mm-dd
+  dataFim?: string // yyyy-mm-dd
+  /** Valor do contrato com o cliente (receita prevista). */
+  valorContrato?: number
+  bdi?: ComposicaoBDI
+}
+
+/** Percentuais (ex: 4 = 4%) usados na fórmula do BDI do TCU (Acórdão 2622/2013). */
+export interface ComposicaoBDI {
+  administracaoCentral: number
+  seguroGarantia: number
+  risco: number
+  despesasFinanceiras: number
+  lucro: number
+  /** PIS + COFINS + ISS + CPRB, sobre o preço de venda. */
+  tributos: number
 }
 
 export interface Fornecedor {
@@ -45,6 +63,8 @@ export interface CompraMaterial {
   descricao: string
   valor: number
   numeroNota?: string
+  etapaId?: string
+  solicitacaoId?: string
 }
 
 export interface Despesa {
@@ -69,6 +89,108 @@ export interface PagamentoTarefa {
   chavePix?: string
 }
 
+export type CategoriaCusto = 'material' | 'mao_de_obra' | 'equipamento' | 'servico'
+
+/** Etapa da obra: agrupa itens do orçamento e é a linha do cronograma. */
+export interface Etapa {
+  id: string
+  obraId: string
+  nome: string
+  ordem: number
+  dataInicio: string // yyyy-mm-dd
+  dataFim: string // yyyy-mm-dd
+  /** Avanço físico real, 0 a 100. */
+  percentualConcluido: number
+}
+
+export interface ItemOrcamento {
+  id: string
+  obraId: string
+  etapaId: string
+  codigo?: string // ex: código SINAPI
+  descricao: string
+  unidade: string
+  quantidade: number
+  /** Custo direto unitário, sem BDI. */
+  custoUnitario: number
+  categoria: CategoriaCusto
+}
+
+export type StatusSolicitacao = 'pendente' | 'aprovada' | 'rejeitada' | 'comprada'
+
+export interface SolicitacaoCompra {
+  id: string
+  obraId: string
+  etapaId?: string
+  data: string // yyyy-mm-dd
+  solicitante: string
+  descricao: string
+  quantidade: number
+  unidade: string
+  valorEstimado: number
+  fornecedorId?: string
+  status: StatusSolicitacao
+  aprovadoPor?: string
+  dataDecisao?: string
+  motivoRejeicao?: string
+  compraId?: string
+}
+
+/** Contrato de empreitada com um empreiteiro, pago por medições. */
+export interface ContratoEmpreiteiro {
+  id: string
+  obraId: string
+  etapaId?: string
+  empreiteiro: string
+  descricao: string
+  valorTotal: number
+  /** Retenção técnica (caução) descontada de cada medição, em %. */
+  retencaoPercentual: number
+}
+
+export type StatusMedicao = 'aberta' | 'aprovada' | 'paga'
+
+export interface Medicao {
+  id: string
+  contratoId: string
+  data: string // yyyy-mm-dd
+  /** Percentual do contrato executado neste período. */
+  percentualPeriodo: number
+  status: StatusMedicao
+  dataPagamento?: string
+  observacao?: string
+}
+
+export type TipoLancamento = 'receita' | 'despesa'
+
+/** Contas a pagar / a receber que não vêm dos outros lançamentos (ex: parcelas do cliente, aluguel de equipamento). */
+export interface LancamentoFinanceiro {
+  id: string
+  obraId?: string
+  tipo: TipoLancamento
+  descricao: string
+  valor: number
+  vencimento: string // yyyy-mm-dd
+  pago: boolean
+  dataPagamento?: string
+  categoria?: CategoriaCusto
+}
+
+export type Clima = 'sol' | 'nublado' | 'chuva'
+
+export interface DiarioObra {
+  id: string
+  obraId: string
+  data: string // yyyy-mm-dd
+  climaManha: Clima
+  climaTarde: Clima
+  efetivo: number
+  atividades: string
+  ocorrencias?: string
+  /** Fotos reduzidas em data URL (JPEG). */
+  fotos: string[]
+}
+
 export interface Database {
   trabalhadores: Trabalhador[]
   obras: Obra[]
@@ -77,6 +199,58 @@ export interface Database {
   comprasMaterial: CompraMaterial[]
   despesas: Despesa[]
   pagamentosTarefa: PagamentoTarefa[]
+  etapas: Etapa[]
+  itensOrcamento: ItemOrcamento[]
+  solicitacoesCompra: SolicitacaoCompra[]
+  contratos: ContratoEmpreiteiro[]
+  medicoes: Medicao[]
+  lancamentos: LancamentoFinanceiro[]
+  diarios: DiarioObra[]
+}
+
+/** Coleções com CRUD genérico no store. */
+export type ColecaoGenerica =
+  | 'etapas'
+  | 'itensOrcamento'
+  | 'solicitacoesCompra'
+  | 'contratos'
+  | 'medicoes'
+  | 'lancamentos'
+  | 'diarios'
+
+export const CATEGORIA_LABEL: Record<CategoriaCusto, string> = {
+  material: 'Material',
+  mao_de_obra: 'Mão de obra',
+  equipamento: 'Equipamento',
+  servico: 'Serviço / empreitada',
+}
+
+export const STATUS_SOLICITACAO_LABEL: Record<StatusSolicitacao, string> = {
+  pendente: 'Aguardando aprovação',
+  aprovada: 'Aprovada',
+  rejeitada: 'Rejeitada',
+  comprada: 'Comprada',
+}
+
+export const STATUS_MEDICAO_LABEL: Record<StatusMedicao, string> = {
+  aberta: 'Em aberto',
+  aprovada: 'Aprovada',
+  paga: 'Paga',
+}
+
+export const CLIMA_LABEL: Record<Clima, string> = {
+  sol: '☀️ Sol',
+  nublado: '⛅ Nublado',
+  chuva: '🌧️ Chuva',
+}
+
+export const BDI_PADRAO: ComposicaoBDI = {
+  administracaoCentral: 4,
+  seguroGarantia: 0.8,
+  risco: 1.27,
+  despesasFinanceiras: 1.23,
+  lucro: 7.4,
+  tributos: 8.65,
 }
 
 export const FUNCOES_SUGERIDAS = [

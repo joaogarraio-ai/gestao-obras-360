@@ -5,6 +5,8 @@ const NAV_ITEMS = [
   { to: '/lancar-dias', label: 'Dias', icon: '✅' },
   { to: '/materiais', label: 'Materiais', icon: '🧱' },
   { to: '/despesas', label: 'Despesas', icon: '⛽' },
+  { to: '/obras', label: 'Obras', icon: '🏗️' },
+  { to: '/financeiro', label: 'Financeiro', icon: '💰' },
   { to: '/relatorio', label: 'Relatório', icon: '📋' },
 ]
 
@@ -25,17 +27,17 @@ export default function Layout() {
         </NavLink>
       </header>
 
-      <main className="flex-1 px-3 py-4 pb-24 max-w-2xl w-full mx-auto">
+      <main className="flex-1 px-3 py-4 pb-24 max-w-2xl lg:max-w-4xl w-full mx-auto">
         <Outlet />
       </main>
 
-      <nav className="no-print fixed bottom-0 inset-x-0 bg-white border-t border-stone-200 flex justify-around py-1.5 shadow-[0_-2px_8px_rgba(0,0,0,0.05)]">
+      <nav className="no-print fixed bottom-0 inset-x-0 bg-white border-t border-stone-200 flex justify-around px-1 py-1.5 shadow-[0_-2px_8px_rgba(0,0,0,0.05)]">
         {NAV_ITEMS.map((item) => (
           <NavLink
             key={item.to}
             to={item.to}
             className={({ isActive }) =>
-              `flex flex-col items-center justify-center gap-0.5 px-2 py-1.5 rounded-lg text-[11px] font-medium min-w-[64px] ${
+              `flex flex-col items-center justify-center gap-0.5 px-0.5 py-1.5 rounded-lg text-[10px] font-medium min-w-0 flex-1 ${
                 isActive ? 'text-amber-800' : 'text-stone-400'
               }`
             }
