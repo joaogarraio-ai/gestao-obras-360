@@ -8,3 +8,11 @@ export function parseMoneyInput(value: string): number {
   const parsed = parseFloat(normalized)
   return Number.isFinite(parsed) ? parsed : 0
 }
+
+export function formatNumero(value: number, casas = 2): string {
+  return value.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: casas })
+}
+
+export function numeroParaInput(value: number | undefined): string {
+  return value === undefined || value === 0 ? '' : String(value).replace('.', ',')
+}

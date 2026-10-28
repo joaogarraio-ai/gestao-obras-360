@@ -1,7 +1,9 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { generateId } from './id'
+import { removerObraCompleta } from './gestao'
 import { loadDatabase, saveDatabase } from './storage'
 import type {
+  ColecaoGenerica,
   CompraMaterial,
   Database,
   Despesa,
@@ -40,6 +42,13 @@ interface StoreValue {
   addPagamentoTarefa: (p: Omit<PagamentoTarefa, 'id'>) => PagamentoTarefa
   updatePagamentoTarefa: (id: string, patch: Partial<Omit<PagamentoTarefa, 'id'>>) => void
   removePagamentoTarefa: (id: string) => void
+
+  /** CRUD genérico para os módulos de gestão (orçamento, cronograma, compras, medições, financeiro, diário). */
+  addItem: <K extends ColecaoGenerica>(col: K, item: Omit<Database[K][number], 'id'>) => Database[K][number]
+  updateItem: <K extends ColecaoGenerica>(col: K, id: string, patch: Partial<Omit<Database[K][number], 'id'>>) => void
+  removeItem: (col: ColecaoGenerica, id: string) => void
+  /** Substitui o banco inteiro (usado pela obra de exemplo e importação de backup). */
+  replaceDatabase: (updater: (prev: Database) => Database) => void
 }
 
 const StoreContext = createContext<StoreValue | null>(null)
@@ -48,7 +57,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [db, setDb] = useState<Database>(() => loadDatabase())
 
   useEffect(() => {
-    saveDatabase(db)
+    try {
+      saveDatabase(db)
+    } catch {
+      alert('Não foi possível salvar: a memória do navegador está cheia. Apague fotos antigas do diário de obra.')
+    }
   }, [db])
 
   const addTrabalhador = useCallback((t: Omit<Trabalhador, 'id'>) => {
@@ -79,7 +92,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const removeObra = useCallback((id: string) => {
-    setDb((prev) => ({ ...prev, obras: prev.obras.filter((o) => o.id !== id) }))
+    setDb((prev) => removerObraCompleta(prev, id))
   }, [])
 
   const addFornecedor = useCallback((f: Omit<Fornecedor, 'id'>) => {
@@ -169,6 +182,30 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setDb((prev) => ({ ...prev, pagamentosTarefa: prev.pagamentosTarefa.filter((p) => p.id !== id) }))
   }, [])
 
+  const addItem = useCallback(<K extends ColecaoGenerica>(col: K, item: Omit<Database[K][number], 'id'>) => {
+    const novo = { ...item, id: generateId() } as Database[K][number]
+    setDb((prev) => ({ ...prev, [col]: [...prev[col], novo] }))
+    return novo
+  }, [])
+
+  const updateItem = useCallback(
+    <K extends ColecaoGenerica>(col: K, id: string, patch: Partial<Omit<Database[K][number], 'id'>>) => {
+      setDb((prev) => ({
+        ...prev,
+        [col]: (prev[col] as { id: string }[]).map((x) => (x.id === id ? { ...x, ...patch } : x)),
+      }))
+    },
+    [],
+  )
+
+  const removeItem = useCallback((col: ColecaoGenerica, id: string) => {
+    setDb((prev) => ({ ...prev, [col]: (prev[col] as { id: string }[]).filter((x) => x.id !== id) }))
+  }, [])
+
+  const replaceDatabase = useCallback((updater: (prev: Database) => Database) => {
+    setDb((prev) => updater(prev))
+  }, [])
+
   const value = useMemo<StoreValue>(
     () => ({
       db,
@@ -192,6 +229,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       addPagamentoTarefa,
       updatePagamentoTarefa,
       removePagamentoTarefa,
+      addItem,
+      updateItem,
+      removeItem,
+      replaceDatabase,
     }),
     [
       db,
@@ -215,6 +256,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       addPagamentoTarefa,
       updatePagamentoTarefa,
       removePagamentoTarefa,
+      addItem,
+      updateItem,
+      removeItem,
+      replaceDatabase,
     ],
   )
 

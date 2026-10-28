@@ -25,6 +25,15 @@ function seedDatabase(): Database {
     comprasMaterial: [],
     despesas: [],
     pagamentosTarefa: [],
+    etapas: [],
+    itensOrcamento: [],
+    solicitacoesCompra: [],
+    contratos: [],
+    medicoes: [],
+    lancamentos: [],
+    diarios: [],
+    materiaisEstoque: [],
+    movimentosEstoque: [],
   }
 }
 
@@ -45,6 +54,15 @@ export function loadDatabase(): Database {
       comprasMaterial: parsed.comprasMaterial ?? [],
       despesas: parsed.despesas ?? [],
       pagamentosTarefa: parsed.pagamentosTarefa ?? [],
+      etapas: parsed.etapas ?? [],
+      itensOrcamento: parsed.itensOrcamento ?? [],
+      solicitacoesCompra: parsed.solicitacoesCompra ?? [],
+      contratos: parsed.contratos ?? [],
+      medicoes: parsed.medicoes ?? [],
+      lancamentos: parsed.lancamentos ?? [],
+      diarios: parsed.diarios ?? [],
+      materiaisEstoque: parsed.materiaisEstoque ?? [],
+      movimentosEstoque: parsed.movimentosEstoque ?? [],
     }
   } catch {
     return seedDatabase()

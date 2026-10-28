@@ -52,6 +52,20 @@ export default function Home() {
             <p className="text-sm font-semibold text-stone-700">Relatório</p>
           </Card>
         </Link>
+        <Link to="/obras">
+          <Card className="p-4 text-center hover:border-amber-400">
+            <p className="text-2xl mb-1">🏗️</p>
+            <p className="text-sm font-semibold text-stone-700">Obras</p>
+            <p className="text-xs text-stone-500">Orçamento, cronograma, compras</p>
+          </Card>
+        </Link>
+        <Link to="/financeiro">
+          <Card className="p-4 text-center hover:border-amber-400">
+            <p className="text-2xl mb-1">💰</p>
+            <p className="text-sm font-semibold text-stone-700">Financeiro</p>
+            <p className="text-xs text-stone-500">Fluxo de caixa e contas</p>
+          </Card>
+        </Link>
       </div>
 
       <Card className="p-4 mb-4">
@@ -61,9 +75,9 @@ export default function Home() {
         ) : (
           <div className="flex flex-wrap gap-2">
             {db.obras.map((o) => (
-              <Badge key={o.id} tone="amber">
-                {o.nome}
-              </Badge>
+              <Link key={o.id} to={`/obras/${o.id}`}>
+                <Badge tone="amber">{o.nome}</Badge>
+              </Link>
             ))}
           </div>
         )}
