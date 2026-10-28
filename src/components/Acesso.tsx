@@ -148,13 +148,14 @@ function EscolherEmpresa() {
   const [carregando, setCarregando] = useState(false)
 
   useEffect(() => {
-    supabase
-      ?.from('empresas')
-      .select(CAMPOS_EMPRESA)
-      .order('nome')
+    if (!supabase) return
+    const listar = (campos: string) => supabase!.from('empresas').select(campos).order('nome')
+    listar(CAMPOS_EMPRESA)
+      // banco ainda sem as colunas de licença: lista só o básico
+      .then((r) => (r.error ? listar('id,nome,codigo_convite') : r))
       .then(({ data, error }) => {
         if (error) setErro(traduzirErro(error.message))
-        setEmpresas(data ?? [])
+        setEmpresas((data ?? []) as unknown as Empresa[])
       })
   }, [])
 
