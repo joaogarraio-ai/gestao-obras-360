@@ -75,7 +75,10 @@ function Logo({ escuro = false }: { escuro?: boolean }) {
   return (
     <div className="flex items-center gap-2.5">
       <img src={`${import.meta.env.BASE_URL}icon.svg`} alt="" className="h-8 w-8 rounded-lg" />
-      <span className={`font-semibold tracking-tight ${escuro ? 'text-white' : 'text-slate-900'}`}>Obra 360</span>
+      <span className={`leading-tight tracking-tight ${escuro ? 'text-white' : 'text-slate-900'}`}>
+        <span className="block text-[10px] font-semibold tracking-wide text-orange-500">JotaP</span>
+        <span className="block font-semibold">Obra 360</span>
+      </span>
     </div>
   )
 }

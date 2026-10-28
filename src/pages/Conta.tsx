@@ -46,7 +46,7 @@ export default function Conta() {
 
   async function compartilharConvite() {
     if (!empresa) return
-    const texto = `Entre na empresa ${empresa.nome} no Obra 360: ${window.location.origin}${window.location.pathname}\nCódigo de convite: ${empresa.codigo_convite}`
+    const texto = `Entre na empresa ${empresa.nome} no JotaP Obra 360: ${window.location.origin}${window.location.pathname}\nCódigo de convite: ${empresa.codigo_convite}`
     if (navigator.share) {
       await navigator.share({ text: texto }).catch(() => undefined)
     } else {

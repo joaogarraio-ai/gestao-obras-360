@@ -38,7 +38,7 @@ export default function Backup() {
       })
       setMsg('Backup importado.')
     } catch {
-      setMsg('Não foi possível ler este arquivo. Use um backup exportado pelo Obra 360.')
+      setMsg('Não foi possível ler este arquivo. Use um backup exportado pelo JotaP Obra 360.')
     } finally {
       if (inputRef.current) inputRef.current.value = ''
     }

@@ -5,7 +5,8 @@ import { defineConfig } from 'vite'
 
 // https://vite.dev/config/
 export default defineConfig(({ command }) => ({
-  base: command === 'build' ? '/gestao-obras-360/' : '/',
+  // Caminho relativo: funciona tanto em joaogarraio-ai.github.io/gestao-obras-360/ quanto no domínio próprio.
+  base: command === 'build' ? './' : '/',
   plugins: [
     react(),
     tailwindcss(),

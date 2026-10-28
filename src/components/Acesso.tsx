@@ -8,7 +8,10 @@ function Tela({ children }: { children: ReactNode }) {
     <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,_#dbe6fe,_#f6f7fb_55%)] flex flex-col items-center px-4 py-10 sm:py-16">
       <div className="flex items-center gap-2.5 mb-8">
         <img src={`${import.meta.env.BASE_URL}icon.svg`} alt="" className="h-10 w-10 rounded-xl shadow-lg shadow-brand-600/20" />
-        <span className="text-xl font-semibold tracking-tight text-slate-900">Obra 360</span>
+        <span className="leading-tight tracking-tight text-slate-900">
+          <span className="block text-[11px] font-semibold tracking-wide text-orange-500">JotaP</span>
+          <span className="block text-xl font-semibold">Obra 360</span>
+        </span>
       </div>
       <main className="w-full max-w-md">{children}</main>
       <p className="mt-10 text-center text-xs text-slate-400">Gestão de obras · orçamento, cronograma, compras e financeiro</p>
