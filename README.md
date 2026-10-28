@@ -50,11 +50,11 @@ Com o Supabase ligado, o app pede login e cada pessoa entra numa **empresa**. To
 
 Para desenvolver localmente com a nuvem, copie `.env.example` para `.env.local` e preencha as mesmas chaves.
 
-## Domínio próprio (obras.jotapentretenimento.com.br)
+## Domínio próprio (obras360.jotapentretenimento.com.br)
 
-1. No painel onde o domínio `jotapentretenimento.com.br` está registrado (ex: Registro.br), crie um registro DNS do tipo **CNAME** com nome `obras` apontando para `joaogarraio-ai.github.io`.
-2. No GitHub, em **Settings > Pages > Custom domain**, digite `obras.jotapentretenimento.com.br` e salve. Quando aparecer, marque **Enforce HTTPS**.
-3. No Supabase, em **Authentication > URL Configuration**, troque a **Site URL** para `https://obras.jotapentretenimento.com.br/` e adicione o mesmo endereço em **Redirect URLs** (pode manter o antigo também).
+1. No painel onde o domínio `jotapentretenimento.com.br` está registrado (ex: Registro.br), crie um registro DNS do tipo **CNAME** com nome `obras360` apontando para `joaogarraio-ai.github.io`.
+2. No GitHub, em **Settings > Pages > Custom domain**, digite `obras360.jotapentretenimento.com.br` e salve. Quando aparecer, marque **Enforce HTTPS**.
+3. No Supabase, em **Authentication > URL Configuration**, troque a **Site URL** para `https://obras360.jotapentretenimento.com.br/` e adicione o mesmo endereço em **Redirect URLs** (pode manter o antigo também).
 
 O app usa caminhos relativos, então funciona tanto no endereço do GitHub quanto no domínio próprio sem mudar o código.
 
