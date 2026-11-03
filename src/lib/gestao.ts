@@ -1,6 +1,6 @@
 import { fromISODate, toISODate } from './dates'
-import { STATUS_DIA_FRACAO } from './types'
-import type { CategoriaCusto, ComposicaoBDI, ContratoEmpreiteiro, Database, Etapa, ItemOrcamento, Medicao, MaterialEstoque, MovimentoEstoque, Obra } from './types'
+import { STATUS_DIA_FRACAO, TIPO_DESPESA_LABEL } from './types'
+import type { CategoriaCusto, ComposicaoBDI, TipoDespesa, ContratoEmpreiteiro, Database, Etapa, ItemOrcamento, Medicao, MaterialEstoque, MovimentoEstoque, Obra } from './types'
 import { BDI_PADRAO } from './types'
 
 // ---------- BDI e orçamento ----------
@@ -173,6 +173,13 @@ export interface Movimento {
   origem: string
 }
 
+/** Em que linha do custo da obra cada despesa entra. */
+export function categoriaDaDespesa(t: TipoDespesa): CategoriaRealizado {
+  if (t === 'aluguel_equipamento' || t === 'ferramentas' || t === 'manutencao_equipamento') return 'equipamento'
+  if (t === 'projetos') return 'servico'
+  return 'outros'
+}
+
 /** Junta todos os lançamentos do app num único extrato de entradas e saídas. */
 export function movimentos(db: Database): Movimento[] {
   const lista: Movimento[] = []
@@ -182,7 +189,18 @@ export function movimentos(db: Database): Movimento[] {
     lista.push({ data: c.data, obraId: c.obraId, etapaId: c.etapaId, tipo: 'saida', categoria: 'material', descricao: c.descricao, valor: c.valor, realizado: true, origem: 'Materiais' })
   }
   for (const d of db.despesas) {
-    lista.push({ data: d.data, obraId: d.obraId, tipo: 'saida', categoria: 'outros', descricao: d.descricao || d.tipo, valor: d.valor, realizado: true, origem: 'Despesas' })
+    const pago = d.pago !== false
+    lista.push({
+      data: pago ? d.data : (d.vencimento ?? d.data),
+      obraId: d.obraId,
+      etapaId: d.etapaId,
+      tipo: 'saida',
+      categoria: categoriaDaDespesa(d.tipo),
+      descricao: d.descricao || TIPO_DESPESA_LABEL[d.tipo] || d.tipo,
+      valor: d.valor,
+      realizado: pago,
+      origem: 'Despesas',
+    })
   }
   for (const r of db.registrosDia) {
     const t = trabalhador(r.trabalhadorId)

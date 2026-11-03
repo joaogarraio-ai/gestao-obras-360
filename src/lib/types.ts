@@ -107,7 +107,35 @@ export interface RegistroDia {
   observacao?: string
 }
 
-export type TipoDespesa = 'gasolina' | 'frete' | 'outro'
+/** Plano de contas das despesas. 'gasolina', 'frete' e 'outro' ficam com a mesma chave para não perder o que já foi lançado. */
+export type TipoDespesa =
+  | 'gasolina'
+  | 'frete'
+  | 'pedagio'
+  | 'manutencao_veiculo'
+  | 'aluguel_equipamento'
+  | 'ferramentas'
+  | 'manutencao_equipamento'
+  | 'alimentacao'
+  | 'hospedagem'
+  | 'transporte_equipe'
+  | 'epi_uniforme'
+  | 'agua_luz'
+  | 'cacamba'
+  | 'limpeza_canteiro'
+  | 'seguranca'
+  | 'taxas_licencas'
+  | 'cartorio'
+  | 'projetos'
+  | 'contabilidade'
+  | 'escritorio'
+  | 'telefone_internet'
+  | 'impostos'
+  | 'seguros'
+  | 'tarifas_bancarias'
+  | 'outro'
+
+export type FormaPagamentoDespesa = 'pix' | 'dinheiro' | 'cartao_credito' | 'cartao_debito' | 'boleto' | 'transferencia' | 'cheque'
 
 export interface CompraMaterial {
   id: string
@@ -128,6 +156,17 @@ export interface Despesa {
   obraId?: string
   descricao: string
   valor: number
+  etapaId?: string
+  fornecedorId?: string
+  /** Quem recebeu, quando não é um fornecedor cadastrado (posto, restaurante...). */
+  favorecido?: string
+  formaPagamento?: FormaPagamentoDespesa
+  /** Número da nota fiscal, cupom ou recibo. */
+  documento?: string
+  /** false = conta a pagar (ainda não saiu do caixa). Despesas antigas não têm o campo e contam como pagas. */
+  pago?: boolean
+  vencimento?: string
+  observacao?: string
 }
 
 /** Pagamento fixo por serviço/tarefa (empreitada), diferente da diária por dia trabalhado. */
@@ -412,7 +451,52 @@ export const STATUS_DIA_FRACAO: Record<StatusDia, number> = {
 }
 
 export const TIPO_DESPESA_LABEL: Record<TipoDespesa, string> = {
-  gasolina: 'Gasolina',
-  frete: 'Frete',
-  outro: 'Outro',
+  gasolina: 'Combustível',
+  frete: 'Frete e carretos',
+  pedagio: 'Pedágio e estacionamento',
+  manutencao_veiculo: 'Manutenção de veículo',
+  aluguel_equipamento: 'Aluguel de equipamento',
+  ferramentas: 'Ferramentas e pequenos equipamentos',
+  manutencao_equipamento: 'Manutenção de equipamento',
+  alimentacao: 'Alimentação da equipe',
+  hospedagem: 'Hospedagem',
+  transporte_equipe: 'Transporte da equipe',
+  epi_uniforme: 'EPI e uniformes',
+  agua_luz: 'Água, luz e gás do canteiro',
+  cacamba: 'Caçamba e retirada de entulho',
+  limpeza_canteiro: 'Limpeza do canteiro',
+  seguranca: 'Vigilância e segurança',
+  taxas_licencas: 'Taxas, alvarás e ART',
+  cartorio: 'Cartório e documentos',
+  projetos: 'Projetos e consultorias',
+  contabilidade: 'Contabilidade',
+  escritorio: 'Escritório e material de expediente',
+  telefone_internet: 'Telefone e internet',
+  impostos: 'Impostos',
+  seguros: 'Seguros',
+  tarifas_bancarias: 'Tarifas bancárias',
+  outro: 'Outras despesas',
+}
+
+/** Grupos do plano de contas, na ordem em que aparecem na tela. */
+export const GRUPOS_DESPESA: { nome: string; tipos: TipoDespesa[] }[] = [
+  { nome: 'Veículos e transporte', tipos: ['gasolina', 'frete', 'pedagio', 'manutencao_veiculo'] },
+  { nome: 'Equipamentos e ferramentas', tipos: ['aluguel_equipamento', 'ferramentas', 'manutencao_equipamento'] },
+  { nome: 'Equipe', tipos: ['alimentacao', 'hospedagem', 'transporte_equipe', 'epi_uniforme'] },
+  { nome: 'Canteiro de obra', tipos: ['agua_luz', 'cacamba', 'limpeza_canteiro', 'seguranca'] },
+  { nome: 'Documentação e serviços', tipos: ['taxas_licencas', 'cartorio', 'projetos'] },
+  { nome: 'Administrativo', tipos: ['contabilidade', 'escritorio', 'telefone_internet', 'impostos', 'seguros', 'tarifas_bancarias'] },
+  { nome: 'Outros', tipos: ['outro'] },
+]
+
+export const grupoDaDespesa = (t: TipoDespesa) => GRUPOS_DESPESA.find((g) => g.tipos.includes(t))?.nome ?? 'Outros'
+
+export const FORMA_PAGAMENTO_DESPESA_LABEL: Record<FormaPagamentoDespesa, string> = {
+  pix: 'PIX',
+  dinheiro: 'Dinheiro',
+  cartao_credito: 'Cartão de crédito',
+  cartao_debito: 'Cartão de débito',
+  boleto: 'Boleto',
+  transferencia: 'Transferência',
+  cheque: 'Cheque',
 }

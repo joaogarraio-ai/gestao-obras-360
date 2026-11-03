@@ -15,7 +15,7 @@ import {
   ShieldCheck,
   Smartphone,
   TriangleAlert,
-  Truck,
+  Receipt,
   UserCircle,
   Wallet,
   X,
@@ -37,7 +37,7 @@ const GRUPOS: { titulo: string; itens: ItemNav[] }[] = [
       { to: '/', label: 'Painel', icon: LayoutDashboard },
       { to: '/lancar-dias', label: 'Diárias e tarefas', icon: CalendarCheck },
       { to: '/materiais', label: 'Materiais', icon: Package },
-      { to: '/despesas', label: 'Despesas', icon: Truck },
+      { to: '/despesas', label: 'Despesas', icon: Receipt },
     ],
   },
   {
