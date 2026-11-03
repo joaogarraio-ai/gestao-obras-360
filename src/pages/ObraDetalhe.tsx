@@ -1,3 +1,4 @@
+import { FileText } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useStore } from '../lib/store'
@@ -46,7 +47,13 @@ export default function ObraDetalhe() {
       <Link to="/obras" className="no-print text-sm text-brand-700">
         ← Obras
       </Link>
-      <PageTitle title={obra.nome} subtitle={[db.clientes.find((c) => c.id === obra.clienteId)?.nome ?? obra.cliente, [obra.cidade, obra.uf].filter(Boolean).join('/') || obra.endereco].filter(Boolean).join(' · ') || undefined} />
+      <PageTitle title={obra.nome} subtitle={[db.clientes.find((c) => c.id === obra.clienteId)?.nome ?? obra.cliente, [obra.cidade, obra.uf].filter(Boolean).join('/') || obra.endereco].filter(Boolean).join(' · ') || undefined}
+        actions={
+          <Link to={`/obras/${obra.id}/proposta`} className="no-print inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">
+            <FileText className="h-4 w-4" /> Proposta PDF
+          </Link>
+        }
+      />
 
       <Tabs abas={ABAS} ativa={aba} onChange={setAba} />
 
