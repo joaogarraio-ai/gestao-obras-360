@@ -11,11 +11,13 @@ import ObraDetalhe from './pages/ObraDetalhe'
 import Financeiro from './pages/Financeiro'
 import Conta from './pages/Conta'
 import Admin from './pages/Admin'
+import Proposta from './pages/Proposta'
 
 export default function App() {
   return (
     <HashRouter>
       <Routes>
+        <Route path="/obras/:id/proposta" element={<Proposta />} />
         <Route element={<Layout />}>
           <Route path="/" element={<Home />} />
           <Route path="/lancar-dias" element={<LancarDias />} />
