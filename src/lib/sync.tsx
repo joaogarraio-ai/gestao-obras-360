@@ -25,6 +25,8 @@ const COLECOES = [
   'materiaisEstoque',
   'movimentosEstoque',
   'notasFiscais',
+  'contasBancarias',
+  'extrato',
 ] as const satisfies readonly (keyof Database)[]
 
 type Colecao = (typeof COLECOES)[number]

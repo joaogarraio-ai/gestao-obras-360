@@ -8,18 +8,31 @@ import { formatBRL, parseMoneyInput } from '../lib/money'
 import { CATEGORIA_LABEL } from '../lib/types'
 import type { CategoriaCusto, TipoLancamento } from '../lib/types'
 import { baixarPlanilha } from '../lib/exportar'
+import Dre from './financeiro/Dre'
+import Bancos from './financeiro/Bancos'
 import { Badge, Button, Card, EmptyState, Field, Input, PageTitle, Select, Stat, Tabs } from '../components/ui'
 
 const ABAS = [
   { id: 'fluxo', label: 'Fluxo de caixa' },
   { id: 'contas', label: 'Contas a pagar/receber' },
+  { id: 'bancos', label: 'Bancos' },
+  { id: 'dre', label: 'DRE' },
 ] as const
 
 export default function Financeiro() {
   const { db, addItem, updateItem, removeItem } = useStore()
   const [aba, setAba] = useState<(typeof ABAS)[number]['id']>('fluxo')
   const [obraId, setObraId] = useState('')
-  const [form, setForm] = useState<null | { tipo: TipoLancamento; descricao: string; valor: string; vencimento: string; obraId: string; categoria: string; pago: boolean }>(null)
+  const [form, setForm] = useState<null | {
+    tipo: TipoLancamento
+    descricao: string
+    valor: string
+    vencimento: string
+    obraId: string
+    categoria: string
+    pago: boolean
+    contaId?: string
+  }>(null)
 
   const todos = movimentos(db).filter((m) => !obraId || m.obraId === obraId)
   const hoje = toISODate(new Date())
@@ -58,6 +71,7 @@ export default function Financeiro() {
       categoria: form.tipo === 'despesa' && form.categoria ? (form.categoria as CategoriaCusto) : undefined,
       pago: form.pago,
       dataPagamento: form.pago ? form.vencimento : undefined,
+      contaId: form.contaId || undefined,
     })
     setForm(null)
   }
@@ -84,20 +98,37 @@ export default function Financeiro() {
       </Select>
 
       <div className="grid grid-cols-2 gap-3 mb-4">
-        <Stat label="Saldo realizado" value={<span className={entradasReal - saidasReal < 0 ? 'text-red-600' : 'text-green-700'}>{formatBRL(entradasReal - saidasReal)}</span>} hint={`Entrou ${formatBRL(entradasReal)} · saiu ${formatBRL(saidasReal)}`} />
-        <Stat label="Saldo projetado" value={formatBRL(entradasReal - saidasReal + aReceber - aPagar)} hint={`A receber ${formatBRL(aReceber)} · a pagar ${formatBRL(aPagar)}`} />
+        <Stat
+          label="Saldo realizado"
+          value={<span className={entradasReal - saidasReal < 0 ? 'text-red-600' : 'text-green-700'}>{formatBRL(entradasReal - saidasReal)}</span>}
+          hint={`Entrou ${formatBRL(entradasReal)} · saiu ${formatBRL(saidasReal)}`}
+        />
+        <Stat
+          label="Saldo projetado"
+          value={formatBRL(entradasReal - saidasReal + aReceber - aPagar)}
+          hint={`A receber ${formatBRL(aReceber)} · a pagar ${formatBRL(aPagar)}`}
+        />
       </div>
 
       <Tabs abas={ABAS} ativa={aba} onChange={setAba} />
 
       {aba === 'fluxo' && <FluxoMensal movs={todos} />}
 
+      {aba === 'dre' && <Dre movs={todos} obraId={obraId} />}
+
+      {aba === 'bancos' && <Bancos movs={movimentos(db)} />}
+
       {aba === 'contas' && (
         <div className="space-y-3">
           {!form && (
             <div className="grid grid-cols-2 gap-2">
-              <Button onClick={() => setForm({ tipo: 'receita', descricao: '', valor: '', vencimento: hoje, obraId, categoria: '', pago: false })}>+ A receber</Button>
-              <Button variant="secondary" onClick={() => setForm({ tipo: 'despesa', descricao: '', valor: '', vencimento: hoje, obraId, categoria: 'equipamento', pago: false })}>
+              <Button onClick={() => setForm({ tipo: 'receita', descricao: '', valor: '', vencimento: hoje, obraId, categoria: '', pago: false })}>
+                + A receber
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={() => setForm({ tipo: 'despesa', descricao: '', valor: '', vencimento: hoje, obraId, categoria: 'equipamento', pago: false })}
+              >
                 + A pagar
               </Button>
             </div>
@@ -107,7 +138,11 @@ export default function Financeiro() {
             <Card className="p-4 space-y-3 border-brand-400">
               <p className="font-semibold text-slate-700">{form.tipo === 'receita' ? 'Conta a receber' : 'Conta a pagar'}</p>
               <Field label="Descrição">
-                <Input value={form.descricao} onChange={(e) => setForm({ ...form, descricao: e.target.value })} placeholder={form.tipo === 'receita' ? 'Ex: Parcela 2 do cliente' : 'Ex: Aluguel de andaime'} />
+                <Input
+                  value={form.descricao}
+                  onChange={(e) => setForm({ ...form, descricao: e.target.value })}
+                  placeholder={form.tipo === 'receita' ? 'Ex: Parcela 2 do cliente' : 'Ex: Aluguel de andaime'}
+                />
               </Field>
               <div className="grid grid-cols-2 gap-2">
                 <Field label="Valor (R$)">
@@ -143,6 +178,20 @@ export default function Financeiro() {
                 <input type="checkbox" checked={form.pago} onChange={(e) => setForm({ ...form, pago: e.target.checked })} className="accent-brand-700" />
                 Já foi {form.tipo === 'receita' ? 'recebido' : 'pago'}
               </label>
+              {db.contasBancarias.some((c) => c.ativo) && (
+                <Field label={form.tipo === 'receita' ? 'Conta onde entra' : 'Conta de onde sai'}>
+                  <Select value={form.contaId ?? ''} onChange={(e) => setForm({ ...form, contaId: e.target.value })}>
+                    <option value="">—</option>
+                    {db.contasBancarias
+                      .filter((c) => c.ativo)
+                      .map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.nome}
+                        </option>
+                      ))}
+                  </Select>
+                </Field>
+              )}
               <div className="flex gap-2">
                 <Button onClick={salvar} className="flex-1">
                   Salvar
@@ -154,8 +203,14 @@ export default function Financeiro() {
             </Card>
           )}
 
-          {listaContas("A receber", db.lancamentos.filter((l) => l.tipo === 'receita' && !l.pago && (!obraId || l.obraId === obraId)))}
-          {listaContas("A pagar", db.lancamentos.filter((l) => l.tipo === 'despesa' && !l.pago && (!obraId || l.obraId === obraId)))}
+          {listaContas(
+            'A receber',
+            db.lancamentos.filter((l) => l.tipo === 'receita' && !l.pago && (!obraId || l.obraId === obraId)),
+          )}
+          {listaContas(
+            'A pagar',
+            db.lancamentos.filter((l) => l.tipo === 'despesa' && !l.pago && (!obraId || l.obraId === obraId)),
+          )}
 
           {todos.some((m) => !m.realizado && (m.origem === 'Medições' || m.origem === 'Compra aprovada')) && (
             <Card className="p-3">
@@ -242,16 +297,28 @@ function FluxoMensal({ movs }: { movs: Movimento[] }) {
           {linhas.map((l) => (
             <div key={l.mes.chave} className="flex-1 min-w-10 flex flex-col items-center justify-end h-full">
               <div className="flex items-end gap-0.5 flex-1 w-full justify-center">
-                <div className={`w-full max-w-4 rounded-t-md bg-emerald-400 ${l.mes.chave > hojeMes ? 'opacity-40' : ''}`} style={{ height: `${(l.entradas / max) * 100}%` }} title={`Entradas ${formatBRL(l.entradas)}`} />
-                <div className={`w-full max-w-4 rounded-t-md bg-slate-300 ${l.mes.chave > hojeMes ? 'opacity-40' : ''}`} style={{ height: `${(l.saidas / max) * 100}%` }} title={`Saídas ${formatBRL(l.saidas)}`} />
+                <div
+                  className={`w-full max-w-4 rounded-t-md bg-emerald-400 ${l.mes.chave > hojeMes ? 'opacity-40' : ''}`}
+                  style={{ height: `${(l.entradas / max) * 100}%` }}
+                  title={`Entradas ${formatBRL(l.entradas)}`}
+                />
+                <div
+                  className={`w-full max-w-4 rounded-t-md bg-slate-300 ${l.mes.chave > hojeMes ? 'opacity-40' : ''}`}
+                  style={{ height: `${(l.saidas / max) * 100}%` }}
+                  title={`Saídas ${formatBRL(l.saidas)}`}
+                />
               </div>
               <span className="text-[10px] text-slate-500 mt-1 whitespace-nowrap">{l.mes.label}</span>
             </div>
           ))}
         </div>
         <div className="flex gap-3 text-xs text-slate-500 mt-2">
-          <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-emerald-400" /> Entradas</span>
-          <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-slate-300" /> Saídas</span>
+          <span className="flex items-center gap-1.5">
+            <span className="h-2 w-2 rounded-full bg-emerald-400" /> Entradas
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="h-2 w-2 rounded-full bg-slate-300" /> Saídas
+          </span>
           <span>Meses futuros mais claros (previsto)</span>
         </div>
       </Card>

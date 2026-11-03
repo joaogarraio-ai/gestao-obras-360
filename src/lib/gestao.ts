@@ -1,6 +1,18 @@
 import { fromISODate, toISODate } from './dates'
 import { STATUS_DIA_FRACAO, TIPO_DESPESA_LABEL } from './types'
-import type { CategoriaCusto, ComposicaoBDI, TipoDespesa, ContratoEmpreiteiro, Database, Etapa, ItemOrcamento, Medicao, MaterialEstoque, MovimentoEstoque, Obra } from './types'
+import type {
+  CategoriaCusto,
+  ComposicaoBDI,
+  TipoDespesa,
+  ContratoEmpreiteiro,
+  Database,
+  Etapa,
+  ItemOrcamento,
+  Medicao,
+  MaterialEstoque,
+  MovimentoEstoque,
+  Obra,
+} from './types'
 import { BDI_PADRAO } from './types'
 
 // ---------- BDI e orçamento ----------
@@ -144,9 +156,7 @@ export function valorMedicao(m: Medicao, contrato: ContratoEmpreiteiro | undefin
 }
 
 export function percentualMedidoContrato(db: Database, contratoId: string, excetoMedicaoId?: string): number {
-  return db.medicoes
-    .filter((m) => m.contratoId === contratoId && m.id !== excetoMedicaoId)
-    .reduce((acc, m) => acc + m.percentualPeriodo, 0)
+  return db.medicoes.filter((m) => m.contratoId === contratoId && m.id !== excetoMedicaoId).reduce((acc, m) => acc + m.percentualPeriodo, 0)
 }
 
 // ---------- Movimentos financeiros (realizado e previsto) ----------
@@ -171,6 +181,9 @@ export interface Movimento {
   valor: number
   realizado: boolean
   origem: string
+  contaId?: string
+  /** De onde veio o movimento, para conciliar com o extrato. */
+  ref?: { colecao: 'lancamentos' | 'despesas'; id: string }
 }
 
 /** Em que linha do custo da obra cada despesa entra. */
@@ -186,7 +199,17 @@ export function movimentos(db: Database): Movimento[] {
   const trabalhador = (id?: string) => db.trabalhadores.find((t) => t.id === id)
 
   for (const c of db.comprasMaterial) {
-    lista.push({ data: c.data, obraId: c.obraId, etapaId: c.etapaId, tipo: 'saida', categoria: 'material', descricao: c.descricao, valor: c.valor, realizado: true, origem: 'Materiais' })
+    lista.push({
+      data: c.data,
+      obraId: c.obraId,
+      etapaId: c.etapaId,
+      tipo: 'saida',
+      categoria: 'material',
+      descricao: c.descricao,
+      valor: c.valor,
+      realizado: true,
+      origem: 'Materiais',
+    })
   }
   for (const d of db.despesas) {
     const pago = d.pago !== false
@@ -200,17 +223,37 @@ export function movimentos(db: Database): Movimento[] {
       valor: d.valor,
       realizado: pago,
       origem: 'Despesas',
+      contaId: d.contaId,
+      ref: { colecao: 'despesas', id: d.id },
     })
   }
   for (const r of db.registrosDia) {
     const t = trabalhador(r.trabalhadorId)
     const valor = (t?.valorDiaria ?? 0) * STATUS_DIA_FRACAO[r.status]
     if (valor > 0) {
-      lista.push({ data: r.data, obraId: r.obraId, tipo: 'saida', categoria: 'mao_de_obra', descricao: `Diária ${t?.nome ?? ''}`.trim(), valor, realizado: true, origem: 'Diárias' })
+      lista.push({
+        data: r.data,
+        obraId: r.obraId,
+        tipo: 'saida',
+        categoria: 'mao_de_obra',
+        descricao: `Diária ${t?.nome ?? ''}`.trim(),
+        valor,
+        realizado: true,
+        origem: 'Diárias',
+      })
     }
   }
   for (const p of db.pagamentosTarefa) {
-    lista.push({ data: p.data, obraId: p.obraId, tipo: 'saida', categoria: 'mao_de_obra', descricao: p.descricao, valor: p.valor, realizado: true, origem: 'Tarefas' })
+    lista.push({
+      data: p.data,
+      obraId: p.obraId,
+      tipo: 'saida',
+      categoria: 'mao_de_obra',
+      descricao: p.descricao,
+      valor: p.valor,
+      realizado: true,
+      origem: 'Tarefas',
+    })
   }
   for (const m of db.medicoes) {
     const contrato = db.contratos.find((c) => c.id === m.contratoId)
@@ -230,7 +273,17 @@ export function movimentos(db: Database): Movimento[] {
   }
   for (const s of db.solicitacoesCompra) {
     if (s.status !== 'aprovada') continue
-    lista.push({ data: s.dataDecisao ?? s.data, obraId: s.obraId, etapaId: s.etapaId, tipo: 'saida', categoria: 'material', descricao: s.descricao, valor: s.valorEstimado, realizado: false, origem: 'Compra aprovada' })
+    lista.push({
+      data: s.dataDecisao ?? s.data,
+      obraId: s.obraId,
+      etapaId: s.etapaId,
+      tipo: 'saida',
+      categoria: 'material',
+      descricao: s.descricao,
+      valor: s.valorEstimado,
+      realizado: false,
+      origem: 'Compra aprovada',
+    })
   }
   for (const l of db.lancamentos) {
     lista.push({
@@ -242,6 +295,8 @@ export function movimentos(db: Database): Movimento[] {
       valor: l.valor,
       realizado: l.pago,
       origem: l.tipo === 'receita' ? 'Contas a receber' : 'Contas a pagar',
+      contaId: l.contaId,
+      ref: { colecao: 'lancamentos', id: l.id },
     })
   }
   return lista.sort((a, b) => a.data.localeCompare(b.data))
@@ -315,9 +370,7 @@ export function efeitoNoEstoque(m: MovimentoEstoque, obraId: string): number {
 }
 
 export function saldoMaterial(db: Database, obraId: string, materialId: string, excetoId?: string): number {
-  return db.movimentosEstoque
-    .filter((m) => m.materialId === materialId && m.id !== excetoId)
-    .reduce((acc, m) => acc + efeitoNoEstoque(m, obraId), 0)
+  return db.movimentosEstoque.filter((m) => m.materialId === materialId && m.id !== excetoId).reduce((acc, m) => acc + efeitoNoEstoque(m, obraId), 0)
 }
 
 export function saldosEstoque(db: Database, obraId: string): SaldoEstoque[] {

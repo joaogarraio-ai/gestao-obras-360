@@ -33,6 +33,7 @@ interface FormState {
   pago: boolean
   vencimento: string
   observacao: string
+  contaId: string
 }
 
 type Periodo = 'mes' | 'mes_anterior' | '30d' | 'ano' | 'tudo'
@@ -97,6 +98,7 @@ export default function Despesas() {
     pago: true,
     vencimento: '',
     observacao: '',
+    contaId: '',
   })
   const [form, setForm] = useState<FormState>(formVazio)
   const set = (patch: Partial<FormState>) => setForm((f) => ({ ...f, ...patch }))
@@ -127,6 +129,7 @@ export default function Despesas() {
       pago: d.pago !== false,
       vencimento: d.vencimento ?? '',
       observacao: d.observacao ?? '',
+      contaId: d.contaId ?? '',
     })
     setMostrarForm(true)
     window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -150,6 +153,7 @@ export default function Despesas() {
       pago: form.pago,
       vencimento: form.pago ? undefined : form.vencimento,
       observacao: form.observacao.trim() || undefined,
+      contaId: form.contaId || undefined,
     }
     if (editandoId) updateDespesa(editandoId, dados)
     else addDespesa({ ...dados, id: idForm })
@@ -336,6 +340,20 @@ export default function Despesas() {
                   ))}
                 </Select>
               </Field>
+              {db.contasBancarias.some((c) => c.ativo) && (
+                <Field label="Conta / caixa">
+                  <Select value={form.contaId} onChange={(e) => set({ contaId: e.target.value })}>
+                    <option value="">—</option>
+                    {db.contasBancarias
+                      .filter((c) => c.ativo)
+                      .map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.nome}
+                        </option>
+                      ))}
+                  </Select>
+                </Field>
+              )}
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               <Field label="Fornecedor">
