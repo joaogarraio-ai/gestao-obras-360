@@ -97,6 +97,8 @@ export default function FormNota({ tipo, nota, onFechar }: { tipo: TipoNota; not
   const [primeiroVenc, setPrimeiroVenc] = useState(hoje)
   const [intervalo, setIntervalo] = useState('30')
   const [parcelasXml, setParcelasXml] = useState<ParcelaXml[] | null>(null)
+  const movimentosDaNota = db.movimentosEstoque.filter((m) => m.notaId === id)
+  const [darEntrada, setDarEntrada] = useState(entrada && (nota ? movimentosDaNota.length > 0 : true))
 
   // ---- totais ----
   const produtos =
@@ -280,6 +282,32 @@ export default function FormNota({ tipo, nota, onFechar }: { tipo: TipoNota; not
       fornecedorId: dados.fornecedorId,
       clienteId: dados.clienteId,
     }
+    // estoque: refaz as entradas desta nota a partir dos itens
+    for (const m of movimentosDaNota) removeItem('movimentosEstoque', m.id)
+    if (entrada && darEntrada && dados.obraId && !dados.cancelada) {
+      const criados = new Map<string, string>()
+      for (const it of dados.itens) {
+        if (it.quantidade <= 0) continue
+        const chave = it.descricao.toLowerCase()
+        const materialId =
+          db.materiaisEstoque.find((m) => m.nome.toLowerCase() === chave)?.id ??
+          criados.get(chave) ??
+          addItem('materiaisEstoque', { nome: it.descricao, unidade: it.unidade || 'un' }).id
+        criados.set(chave, materialId)
+        addItem('movimentosEstoque', {
+          materialId,
+          obraId: dados.obraId,
+          data: dados.dataEntrada || dados.dataEmissao,
+          tipo: 'entrada',
+          quantidade: it.quantidade,
+          valorUnitario: it.valorUnitario,
+          etapaId: dados.etapaId,
+          observacao: `NF ${dados.numero}`,
+          notaId: id,
+        })
+      }
+    }
+
     if (pagamento !== 'nenhum') {
       // refaz só as parcelas que ainda não foram pagas
       for (const l of parcelasExistentes) if (!l.pago) removeItem('lancamentos', l.id)
@@ -488,6 +516,16 @@ export default function FormNota({ tipo, nota, onFechar }: { tipo: TipoNota; not
           </div>
         ))}
       </Secao>
+
+      {entrada && itens.length > 0 && (
+        <label className="flex items-start gap-2 text-sm text-slate-700 -mt-3">
+          <input type="checkbox" className="mt-0.5 accent-brand-700" checked={darEntrada} onChange={(e) => setDarEntrada(e.target.checked)} />
+          <span>
+            Dar entrada dos itens no estoque da obra
+            {!f.obraId && darEntrada && <span className="block text-xs text-amber-600">Escolha a obra acima para o material entrar no estoque dela.</span>}
+          </span>
+        </label>
+      )}
 
       <Secao titulo="Valores e impostos">
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">

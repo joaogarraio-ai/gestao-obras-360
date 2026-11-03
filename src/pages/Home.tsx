@@ -19,7 +19,17 @@ import { useStore } from '../lib/store'
 import { addDays, formatDatePt, getMondayOfWeek, getWeekRange, toISODate } from '../lib/dates'
 import { formatBRL } from '../lib/money'
 import { gerarRelatorioSemanal } from '../lib/report'
-import { avancoFisicoObra, avancoPrevistoObra, bdiDaObra, custoDiretoObra, formatPercent, mesesEntre, movimentos, saldosEstoque, CATEGORIA_REALIZADO_LABEL } from '../lib/gestao'
+import {
+  avancoFisicoObra,
+  avancoPrevistoObra,
+  bdiDaObra,
+  custoDiretoObra,
+  formatPercent,
+  mesesEntre,
+  movimentos,
+  saldosEstoque,
+  CATEGORIA_REALIZADO_LABEL,
+} from '../lib/gestao'
 import { Card, EmptyState, PageTitle, ProgressBar, SectionTitle, Stat } from '../components/ui'
 
 function Atalho({ to, icon: Icon, label }: { to: string; icon: LucideIcon; label: string }) {
@@ -72,9 +82,7 @@ export default function Home() {
   const saidasMes = doMesAtual.filter((m) => m.tipo === 'saida').reduce((a, m) => a + m.valor, 0)
   const resultadoMes = entradasMes - saidasMes
   const porCategoria = Object.entries(
-    doMesAtual
-      .filter((m) => m.tipo === 'saida')
-      .reduce<Record<string, number>>((acc, m) => ({ ...acc, [m.categoria]: (acc[m.categoria] ?? 0) + m.valor }), {}),
+    doMesAtual.filter((m) => m.tipo === 'saida').reduce<Record<string, number>>((acc, m) => ({ ...acc, [m.categoria]: (acc[m.categoria] ?? 0) + m.valor }), {}),
   )
     .map(([c, v]) => ({ label: CATEGORIA_REALIZADO_LABEL[c as keyof typeof CATEGORIA_REALIZADO_LABEL] ?? c, v }))
     .sort((a, b) => b.v - a.v)
@@ -86,12 +94,18 @@ export default function Home() {
   const comprasPendentes = db.solicitacoesCompra.filter((s) => s.status === 'pendente')
   const medicoesAbertas = db.medicoes.filter((m) => m.status === 'aberta')
   const contasVencidas = [
-    ...db.lancamentos.filter((l) => !l.pago && l.vencimento < hoje).map((l) => ({ id: l.id, descricao: l.descricao, vencimento: l.vencimento, valor: l.valor, to: l.notaId ? '/notas' : '/financeiro' })),
+    ...db.lancamentos
+      .filter((l) => !l.pago && l.vencimento < hoje)
+      .map((l) => ({ id: l.id, descricao: l.descricao, vencimento: l.vencimento, valor: l.valor, to: l.notaId ? '/notas' : '/financeiro' })),
     ...db.despesas
       .filter((d) => d.pago === false && (d.vencimento ?? d.data) < hoje)
       .map((d) => ({ id: d.id, descricao: d.descricao, vencimento: d.vencimento ?? d.data, valor: d.valor, to: '/despesas' })),
   ].sort((a, b) => a.vencimento.localeCompare(b.vencimento))
-  const estoqueBaixo = db.obras.flatMap((o) => saldosEstoque(db, o.id).filter((s) => s.abaixoDoMinimo).map((s) => ({ obra: o, s })))
+  const estoqueBaixo = db.obras.flatMap((o) =>
+    saldosEstoque(db, o.id)
+      .filter((s) => s.abaixoDoMinimo)
+      .map((s) => ({ obra: o, s })),
+  )
   const obraDe = (id: string) => db.obras.find((o) => o.id === id)
 
   // fluxo dos últimos 6 meses
@@ -212,7 +226,11 @@ export default function Home() {
               {barras.map((b) => (
                 <div key={b.m.chave} className="flex h-full flex-1 flex-col items-center justify-end">
                   <div className="flex w-full flex-1 items-end justify-center gap-1">
-                    <div className="w-full max-w-4 rounded-t-md bg-emerald-400" style={{ height: `${(b.e / max) * 100}%` }} title={`Entradas ${formatBRL(b.e)}`} />
+                    <div
+                      className="w-full max-w-4 rounded-t-md bg-emerald-400"
+                      style={{ height: `${(b.e / max) * 100}%` }}
+                      title={`Entradas ${formatBRL(b.e)}`}
+                    />
                     <div className="w-full max-w-4 rounded-t-md bg-slate-300" style={{ height: `${(b.s / max) * 100}%` }} title={`Saídas ${formatBRL(b.s)}`} />
                   </div>
                   <span className="mt-2 text-[11px] text-slate-500">{b.m.label}</span>
@@ -300,7 +318,12 @@ export default function Home() {
               <div className="space-y-3">
                 <div className="flex h-3 overflow-hidden rounded-full bg-slate-100">
                   {porCategoria.map((c, i) => (
-                    <div key={c.label} className={CORES[i % CORES.length]} style={{ width: `${(c.v / saidasMes) * 100}%` }} title={`${c.label} ${formatBRL(c.v)}`} />
+                    <div
+                      key={c.label}
+                      className={CORES[i % CORES.length]}
+                      style={{ width: `${(c.v / saidasMes) * 100}%` }}
+                      title={`${c.label} ${formatBRL(c.v)}`}
+                    />
                   ))}
                 </div>
                 {porCategoria.map((c, i) => (
@@ -343,12 +366,17 @@ export default function Home() {
                     <span className="font-medium text-slate-900 tabular">{formatBRL(x.v)}</span>
                   </div>
                   <div className="mt-1.5 h-1.5 rounded-full bg-slate-100">
-                    <div className={`h-full rounded-full ${x.cor}`} style={{ width: `${relatorio.totalGeral > 0 ? (x.v / relatorio.totalGeral) * 100 : 0}%` }} />
+                    <div
+                      className={`h-full rounded-full ${x.cor}`}
+                      style={{ width: `${relatorio.totalGeral > 0 ? (x.v / relatorio.totalGeral) * 100 : 0}%` }}
+                    />
                   </div>
                 </div>
               ))}
               <div className="flex justify-between border-t border-slate-100 pt-3 text-sm">
-                <span className="text-slate-500">PIX {formatBRL(relatorio.totalPix)} · Dinheiro {formatBRL(relatorio.totalDinheiro)}</span>
+                <span className="text-slate-500">
+                  PIX {formatBRL(relatorio.totalPix)} · Dinheiro {formatBRL(relatorio.totalDinheiro)}
+                </span>
               </div>
             </div>
           </Card>

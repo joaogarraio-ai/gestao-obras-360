@@ -73,6 +73,7 @@ export default function Notas() {
     const msg = `Excluir a nota ${n.numero}?${abertas.length ? ` As ${abertas.length} parcela(s) em aberto no Financeiro também serão apagadas.` : ''}${parcelas.length - abertas.length ? ' As parcelas já pagas ficam no Financeiro.' : ''}`
     if (!confirm(msg)) return
     for (const l of abertas) removeItem('lancamentos', l.id)
+    for (const m of db.movimentosEstoque.filter((x) => x.notaId === n.id)) removeItem('movimentosEstoque', m.id)
     removeItem('notasFiscais', n.id)
     void removerAnexosDe('notasFiscais', n.id)
   }
@@ -85,6 +86,7 @@ export default function Notas() {
       )
         return
       for (const l of abertas) removeItem('lancamentos', l.id)
+      for (const m of db.movimentosEstoque.filter((x) => x.notaId === n.id)) removeItem('movimentosEstoque', m.id)
     }
     updateItem('notasFiscais', n.id, { cancelada: !n.cancelada })
   }

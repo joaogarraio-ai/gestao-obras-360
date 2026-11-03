@@ -167,6 +167,8 @@ export interface Despesa {
   pago?: boolean
   vencimento?: string
   observacao?: string
+  /** Conta bancária ou caixa de onde saiu o dinheiro. */
+  contaId?: string
 }
 
 /** Pagamento fixo por serviço/tarefa (empreitada), diferente da diária por dia trabalhado. */
@@ -282,10 +284,51 @@ export interface LancamentoFinanceiro {
   categoria?: CategoriaCusto
   /** Parcela gerada por uma nota fiscal. */
   notaId?: string
+  /** Conta bancária ou caixa por onde o dinheiro passou. */
+  contaId?: string
   parcela?: string // "1/3"
   formaPagamento?: FormaPagamentoDespesa
   fornecedorId?: string
   clienteId?: string
+}
+
+// ---------- Contas bancárias e conciliação ----------
+
+export type TipoContaBancaria = 'corrente' | 'poupanca' | 'caixa' | 'cartao' | 'investimento'
+
+export interface ContaBancaria {
+  id: string
+  nome: string
+  tipo: TipoContaBancaria
+  banco?: string
+  agencia?: string
+  numero?: string
+  saldoInicial: number
+  /** A partir de quando o saldo inicial vale. */
+  dataSaldoInicial: string
+  ativo: boolean
+}
+
+export const TIPO_CONTA_BANCARIA_LABEL: Record<TipoContaBancaria, string> = {
+  corrente: 'Conta corrente',
+  poupanca: 'Poupança',
+  caixa: 'Caixa (dinheiro)',
+  cartao: 'Cartão de crédito',
+  investimento: 'Investimento',
+}
+
+/** Uma linha do extrato do banco (importado do arquivo OFX). Valor positivo = entrou, negativo = saiu. */
+export interface LinhaExtrato {
+  id: string
+  contaId: string
+  /** Identificador da transação no banco, para não importar duas vezes. */
+  fitid: string
+  data: string
+  valor: number
+  descricao: string
+  /** Com qual lançamento do sistema a linha bateu. */
+  conciliadoCom?: { colecao: 'lancamentos' | 'despesas'; id: string }
+  ignorado?: boolean
 }
 
 // ---------- Notas fiscais ----------
@@ -401,6 +444,8 @@ export interface MovimentoEstoque {
   responsavel?: string
   observacao?: string
   compraId?: string
+  /** Entrada gerada pelos itens de uma nota fiscal de compra. */
+  notaId?: string
 }
 
 export interface Database {
@@ -422,6 +467,8 @@ export interface Database {
   materiaisEstoque: MaterialEstoque[]
   movimentosEstoque: MovimentoEstoque[]
   notasFiscais: NotaFiscal[]
+  contasBancarias: ContaBancaria[]
+  extrato: LinhaExtrato[]
 }
 
 /** Coleções com CRUD genérico no store. */
@@ -437,6 +484,8 @@ export type ColecaoGenerica =
   | 'materiaisEstoque'
   | 'movimentosEstoque'
   | 'notasFiscais'
+  | 'contasBancarias'
+  | 'extrato'
 
 export const TIPO_OBRA_LABEL: Record<TipoObra, string> = {
   residencial: 'Residencial',
@@ -462,7 +511,35 @@ export const CATEGORIA_FORNECEDOR_LABEL: Record<CategoriaFornecedor, string> = {
   outro: 'Outro',
 }
 
-export const UFS = ['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'] as const
+export const UFS = [
+  'AC',
+  'AL',
+  'AP',
+  'AM',
+  'BA',
+  'CE',
+  'DF',
+  'ES',
+  'GO',
+  'MA',
+  'MT',
+  'MS',
+  'MG',
+  'PA',
+  'PB',
+  'PR',
+  'PE',
+  'PI',
+  'RJ',
+  'RN',
+  'RS',
+  'RO',
+  'RR',
+  'SC',
+  'SP',
+  'SE',
+  'TO',
+] as const
 
 export const CATEGORIA_LABEL: Record<CategoriaCusto, string> = {
   material: 'Material',
@@ -505,16 +582,7 @@ export const BDI_PADRAO: ComposicaoBDI = {
   tributos: 8.65,
 }
 
-export const FUNCOES_SUGERIDAS = [
-  'Mestre de obra',
-  'Pedreiro',
-  'Servente',
-  'Ajudante',
-  'Carpinteiro',
-  'Eletricista',
-  'Pintor',
-  'Encanador',
-] as const
+export const FUNCOES_SUGERIDAS = ['Mestre de obra', 'Pedreiro', 'Servente', 'Ajudante', 'Carpinteiro', 'Eletricista', 'Pintor', 'Encanador'] as const
 
 export const STATUS_DIA_LABEL: Record<StatusDia, string> = {
   dia_completo: 'Dia completo',
