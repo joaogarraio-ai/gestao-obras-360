@@ -1,42 +1,54 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useStore } from '../lib/store'
 import { avancoFisicoObra, bdiDaObra, custoDiretoObra, formatPercent, movimentos } from '../lib/gestao'
 import { adicionarObraExemplo } from '../lib/exemplo'
 import { formatBRL } from '../lib/money'
-import { BDI_PADRAO } from '../lib/types'
-import { Badge, Button, Card, EmptyState, Input, PageTitle, ProgressBar } from '../components/ui'
+import { enderecoResumido } from '../lib/formatos'
+import { BDI_PADRAO, STATUS_OBRA_LABEL, type StatusObra } from '../lib/types'
+import FormObra from '../components/FormObra'
+import { Badge, Button, Card, EmptyState, PageTitle, ProgressBar } from '../components/ui'
+
+const TOM_STATUS: Record<StatusObra, 'brand' | 'green' | 'amber' | 'default'> = {
+  orcamento: 'brand',
+  andamento: 'green',
+  paralisada: 'amber',
+  concluida: 'default',
+}
 
 export default function Obras() {
   const { db, addObra, replaceDatabase } = useStore()
-  const [novoNome, setNovoNome] = useState('')
+  const [criando, setCriando] = useState(false)
+  const navigate = useNavigate()
   const movs = movimentos(db)
 
-  function adicionar() {
-    if (!novoNome.trim()) return
-    addObra({ nome: novoNome.trim(), ativo: true, bdi: BDI_PADRAO })
-    setNovoNome('')
-  }
+  const nomeCliente = (o: (typeof db.obras)[number]) => db.clientes.find((c) => c.id === o.clienteId)?.nome ?? o.cliente
 
   const temExemplo = db.obras.some((o) => o.nome.includes('(demonstração)'))
 
   return (
     <div>
-      <PageTitle title="Obras" subtitle="Orçamento, cronograma, compras, medições e diário de cada obra" />
+      <PageTitle
+        title="Obras"
+        subtitle="Orçamento, cronograma, compras, medições e diário de cada obra"
+        actions={!criando && <Button onClick={() => setCriando(true)}>+ Nova obra</Button>}
+      />
 
-      <Card className="p-4 mb-4 lg:max-w-xl">
-        <div className="flex gap-2">
-          <Input
-            value={novoNome}
-            onChange={(e) => setNovoNome(e.target.value)}
-            placeholder="Nome da nova obra"
-            onKeyDown={(e) => e.key === 'Enter' && adicionar()}
+      {criando && (
+        <div className="mb-4 lg:max-w-3xl">
+          <FormObra
+            textoSalvar="Criar obra"
+            onCancelar={() => setCriando(false)}
+            onSalvar={(dados) => {
+              const nova = addObra({ ...dados, ativo: true, bdi: BDI_PADRAO })
+              setCriando(false)
+              navigate(`/obras/${nova.id}`)
+            }}
           />
-          <Button onClick={adicionar}>Criar</Button>
         </div>
-      </Card>
+      )}
 
-      {db.obras.length === 0 && <EmptyState text="Nenhuma obra cadastrada ainda." />}
+      {db.obras.length === 0 && !criando && <EmptyState text="Nenhuma obra cadastrada ainda." />}
 
       <div className="grid gap-3 mb-4 lg:grid-cols-2">
         {db.obras.map((o) => {
@@ -49,10 +61,18 @@ export default function Obras() {
               <Card className="p-4 hover:border-brand-400">
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
-                    <p className="font-semibold text-slate-800 truncate">{o.nome}</p>
-                    {o.cliente && <p className="text-xs text-slate-500 truncate">{o.cliente}</p>}
+                    <p className="font-semibold text-slate-800 truncate">
+                      {o.codigo && <span className="text-slate-400 font-normal">{o.codigo} · </span>}
+                      {o.nome}
+                    </p>
+                    {(nomeCliente(o) || enderecoResumido(o)) && (
+                      <p className="text-xs text-slate-500 truncate">{[nomeCliente(o), [o.cidade, o.uf].filter(Boolean).join('/') || o.endereco].filter(Boolean).join(' · ')}</p>
+                    )}
                   </div>
-                  {pendentes > 0 && <Badge tone="amber">{pendentes} compra(s) p/ aprovar</Badge>}
+                  <div className="flex flex-col items-end gap-1 shrink-0">
+                    {o.status && <Badge tone={TOM_STATUS[o.status]}>{STATUS_OBRA_LABEL[o.status]}</Badge>}
+                    {pendentes > 0 && <Badge tone="amber">{pendentes} compra(s) p/ aprovar</Badge>}
+                  </div>
                 </div>
                 <div className="grid grid-cols-3 gap-2 mt-3 text-xs">
                   <div>

@@ -46,7 +46,7 @@ export default function ObraDetalhe() {
       <Link to="/obras" className="no-print text-sm text-brand-700">
         ← Obras
       </Link>
-      <PageTitle title={obra.nome} subtitle={[obra.cliente, obra.endereco].filter(Boolean).join(' · ') || undefined} />
+      <PageTitle title={obra.nome} subtitle={[db.clientes.find((c) => c.id === obra.clienteId)?.nome ?? obra.cliente, [obra.cidade, obra.uf].filter(Boolean).join('/') || obra.endereco].filter(Boolean).join(' · ') || undefined} />
 
       <Tabs abas={ABAS} ativa={aba} onChange={setAba} />
 

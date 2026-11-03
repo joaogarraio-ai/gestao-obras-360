@@ -13,21 +13,16 @@ import {
   orcadoXRealizado,
   realizadoPorEtapa,
 } from '../../lib/gestao'
-import { formatBRL, numeroParaInput, parseMoneyInput } from '../../lib/money'
-import type { Obra } from '../../lib/types'
-import { Button, Card, Field, Input, ProgressBar, Stat } from '../../components/ui'
+import { formatBRL, formatNumero } from '../../lib/money'
+import { formatDatePt } from '../../lib/dates'
+import { enderecoResumido } from '../../lib/formatos'
+import FormObra from '../../components/FormObra'
+import { STATUS_OBRA_LABEL, TIPO_OBRA_LABEL, type Obra } from '../../lib/types'
+import { Button, Card, ProgressBar, Stat } from '../../components/ui'
 
 export default function ResumoTab({ obra }: { obra: Obra }) {
   const { db, updateObra } = useStore()
   const [editando, setEditando] = useState(false)
-  const [form, setForm] = useState({
-    nome: obra.nome,
-    cliente: obra.cliente ?? '',
-    endereco: obra.endereco ?? '',
-    dataInicio: obra.dataInicio ?? '',
-    dataFim: obra.dataFim ?? '',
-    valorContrato: numeroParaInput(obra.valorContrato),
-  })
 
   const bdi = bdiDaObra(obra)
   const custoDireto = custoDiretoObra(db, obra.id)
@@ -39,19 +34,7 @@ export default function ResumoTab({ obra }: { obra: Obra }) {
   const previsto = avancoPrevistoObra(db, obra.id)
   const comparativo = orcadoXRealizado(db, obra.id)
   const etapas = etapasDaObra(db, obra.id)
-
-  function salvar() {
-    if (!form.nome.trim()) return
-    updateObra(obra.id, {
-      nome: form.nome.trim(),
-      cliente: form.cliente.trim() || undefined,
-      endereco: form.endereco.trim() || undefined,
-      dataInicio: form.dataInicio || undefined,
-      dataFim: form.dataFim || undefined,
-      valorContrato: parseMoneyInput(form.valorContrato) || undefined,
-    })
-    setEditando(false)
-  }
+  const cliente = db.clientes.find((c) => c.id === obra.clienteId)
 
   return (
     <div className="space-y-4">
@@ -140,53 +123,52 @@ export default function ResumoTab({ obra }: { obra: Obra }) {
         </Card>
       )}
 
-      <Card className="p-4">
-        {!editando ? (
-          <div className="flex items-center justify-between">
-            <div className="text-sm text-slate-600">
-              <p className="font-semibold text-slate-700">Dados da obra</p>
-              <p>
-                {obra.dataInicio ? new Date(obra.dataInicio + 'T12:00').toLocaleDateString('pt-BR') : 'Sem início'} até{' '}
-                {obra.dataFim ? new Date(obra.dataFim + 'T12:00').toLocaleDateString('pt-BR') : 'sem término'}
-              </p>
-            </div>
-            <Button variant="secondary" onClick={() => setEditando(true)}>
+      {editando ? (
+        <FormObra
+          obra={obra}
+          onCancelar={() => setEditando(false)}
+          onSalvar={(dados) => {
+            updateObra(obra.id, dados)
+            setEditando(false)
+          }}
+        />
+      ) : (
+        <Card className="p-4">
+          <div className="flex items-start justify-between gap-2 mb-3">
+            <p className="font-semibold text-slate-700">Dados da obra</p>
+            <Button variant="secondary" className="py-1.5" onClick={() => setEditando(true)}>
               Editar
             </Button>
           </div>
-        ) : (
-          <div className="space-y-3">
-            <Field label="Nome">
-              <Input value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} />
-            </Field>
-            <Field label="Cliente">
-              <Input value={form.cliente} onChange={(e) => setForm({ ...form, cliente: e.target.value })} />
-            </Field>
-            <Field label="Endereço">
-              <Input value={form.endereco} onChange={(e) => setForm({ ...form, endereco: e.target.value })} />
-            </Field>
-            <div className="grid grid-cols-2 gap-2">
-              <Field label="Início">
-                <Input type="date" value={form.dataInicio} onChange={(e) => setForm({ ...form, dataInicio: e.target.value })} />
-              </Field>
-              <Field label="Término previsto">
-                <Input type="date" value={form.dataFim} onChange={(e) => setForm({ ...form, dataFim: e.target.value })} />
-              </Field>
-            </div>
-            <Field label="Valor do contrato com o cliente (R$)">
-              <Input value={form.valorContrato} onChange={(e) => setForm({ ...form, valorContrato: e.target.value })} inputMode="decimal" />
-            </Field>
-            <div className="flex gap-2">
-              <Button onClick={salvar} className="flex-1">
-                Salvar
-              </Button>
-              <Button variant="secondary" onClick={() => setEditando(false)}>
-                Cancelar
-              </Button>
-            </div>
-          </div>
-        )}
-      </Card>
+          <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-sm">
+            {[
+              ['Código', obra.codigo],
+              ['Situação', obra.status && STATUS_OBRA_LABEL[obra.status]],
+              ['Tipo', obra.tipo && TIPO_OBRA_LABEL[obra.tipo]],
+              ['Cliente', cliente?.nome ?? obra.cliente],
+              ['Contato do cliente', cliente && [cliente.telefone, cliente.email].filter(Boolean).join(' · ')],
+              ['Endereço', [enderecoResumido(obra), obra.complemento, obra.cep && `CEP ${obra.cep}`].filter(Boolean).join(' · ')],
+              ['Prazo', `${obra.dataInicio ? formatDatePt(obra.dataInicio) : 'sem início'} até ${obra.dataFim ? formatDatePt(obra.dataFim) : 'sem término'}`],
+              ['Área construída', obra.areaConstruida ? `${formatNumero(obra.areaConstruida)} m²` : undefined],
+              ['Custo orçado por m²', obra.areaConstruida && precoVenda > 0 ? formatBRL(precoVenda / obra.areaConstruida) : undefined],
+              ['Responsável técnico', [obra.responsavelTecnico, obra.registroProfissional].filter(Boolean).join(' · ')],
+              ['ART / RRT', obra.art],
+              ['Alvará', obra.alvara],
+              ['Observações', obra.observacao],
+            ]
+              .filter(([, v]) => v)
+              .map(([k, v]) => (
+                <div key={k} className="min-w-0">
+                  <dt className="text-xs text-slate-500">{k}</dt>
+                  <dd className="text-slate-800 break-words">{v}</dd>
+                </div>
+              ))}
+          </dl>
+          {!obra.cidade && !obra.clienteId && (
+            <p className="mt-3 text-xs text-amber-600">Complete o cadastro: cliente, endereço com cidade, prazo e responsável técnico.</p>
+          )}
+        </Card>
+      )}
     </div>
   )
 }

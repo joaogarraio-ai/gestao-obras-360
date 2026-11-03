@@ -6,6 +6,7 @@ import type { Database } from './types'
 
 /** Todas as listas do banco local; cada item vira uma linha em `registros` no Supabase. */
 const COLECOES = [
+  'clientes',
   'trabalhadores',
   'obras',
   'fornecedores',
