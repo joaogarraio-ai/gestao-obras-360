@@ -282,7 +282,9 @@ export function removerObraCompleta(db: Database, obraId: string): Database {
     solicitacoesCompra: db.solicitacoesCompra.filter((x) => x.obraId !== obraId),
     contratos: db.contratos.filter((x) => x.obraId !== obraId),
     medicoes: db.medicoes.filter((x) => !contratosIds.has(x.contratoId)),
-    lancamentos: db.lancamentos.filter((x) => x.obraId !== obraId),
+    // parcelas de nota fiscal são documento fiscal: ficam, só perdem o vínculo com a obra
+    lancamentos: db.lancamentos.filter((x) => x.obraId !== obraId || x.notaId).map((x) => (x.obraId === obraId ? { ...x, obraId: undefined } : x)),
+    notasFiscais: db.notasFiscais.map((n) => (n.obraId === obraId ? { ...n, obraId: undefined, etapaId: undefined } : n)),
     diarios: db.diarios.filter((x) => x.obraId !== obraId),
     movimentosEstoque: db.movimentosEstoque.filter((x) => x.obraId !== obraId && x.obraDestinoId !== obraId),
   }

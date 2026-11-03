@@ -3,16 +3,15 @@ import {
   ArrowDownRight,
   ArrowUpRight,
   Building2,
+  FileCheck2,
+  TrendingUp,
   CalendarCheck,
   ChevronRight,
   ClipboardCheck,
-  HardHat,
   Package,
   PackageX,
-  Plus,
   Receipt,
   Ruler,
-  Truck,
   Wallet,
   type LucideIcon,
 } from 'lucide-react'
@@ -20,7 +19,7 @@ import { useStore } from '../lib/store'
 import { addDays, formatDatePt, getMondayOfWeek, getWeekRange, toISODate } from '../lib/dates'
 import { formatBRL } from '../lib/money'
 import { gerarRelatorioSemanal } from '../lib/report'
-import { avancoFisicoObra, avancoPrevistoObra, formatPercent, mesesEntre, movimentos, saldosEstoque } from '../lib/gestao'
+import { avancoFisicoObra, avancoPrevistoObra, bdiDaObra, custoDiretoObra, formatPercent, mesesEntre, movimentos, saldosEstoque, CATEGORIA_REALIZADO_LABEL } from '../lib/gestao'
 import { Card, EmptyState, PageTitle, ProgressBar, SectionTitle, Stat } from '../components/ui'
 
 function Atalho({ to, icon: Icon, label }: { to: string; icon: LucideIcon; label: string }) {
@@ -64,12 +63,34 @@ export default function Home() {
   const aPagar30 = movs.filter((m) => m.tipo === 'saida' && !m.realizado && m.data <= limite30).reduce((a, m) => a + m.valor, 0)
   const aReceber30 = movs.filter((m) => m.tipo === 'entrada' && !m.realizado && m.data <= limite30).reduce((a, m) => a + m.valor, 0)
 
-  const obrasAtivas = db.obras.filter((o) => o.ativo)
+  const obrasAtivas = db.obras.filter((o) => o.ativo && o.status !== 'concluida')
+
+  // mês atual
+  const mesAtual = hoje.slice(0, 7)
+  const doMesAtual = movs.filter((m) => m.realizado && m.data.slice(0, 7) === mesAtual)
+  const entradasMes = doMesAtual.filter((m) => m.tipo === 'entrada').reduce((a, m) => a + m.valor, 0)
+  const saidasMes = doMesAtual.filter((m) => m.tipo === 'saida').reduce((a, m) => a + m.valor, 0)
+  const resultadoMes = entradasMes - saidasMes
+  const porCategoria = Object.entries(
+    doMesAtual
+      .filter((m) => m.tipo === 'saida')
+      .reduce<Record<string, number>>((acc, m) => ({ ...acc, [m.categoria]: (acc[m.categoria] ?? 0) + m.valor }), {}),
+  )
+    .map(([c, v]) => ({ label: CATEGORIA_REALIZADO_LABEL[c as keyof typeof CATEGORIA_REALIZADO_LABEL] ?? c, v }))
+    .sort((a, b) => b.v - a.v)
+  const CORES = ['bg-brand-500', 'bg-emerald-500', 'bg-orange-400', 'bg-violet-500', 'bg-slate-400']
+  const vencidosPagar = movs.filter((m) => m.tipo === 'saida' && !m.realizado && m.data < hoje).reduce((a, m) => a + m.valor, 0)
+  const notasMes = db.notasFiscais.filter((n) => !n.cancelada && n.dataEmissao.slice(0, 7) === mesAtual)
 
   // pendências
   const comprasPendentes = db.solicitacoesCompra.filter((s) => s.status === 'pendente')
   const medicoesAbertas = db.medicoes.filter((m) => m.status === 'aberta')
-  const contasVencidas = db.lancamentos.filter((l) => !l.pago && l.vencimento < hoje)
+  const contasVencidas = [
+    ...db.lancamentos.filter((l) => !l.pago && l.vencimento < hoje).map((l) => ({ id: l.id, descricao: l.descricao, vencimento: l.vencimento, valor: l.valor, to: l.notaId ? '/notas' : '/financeiro' })),
+    ...db.despesas
+      .filter((d) => d.pago === false && (d.vencimento ?? d.data) < hoje)
+      .map((d) => ({ id: d.id, descricao: d.descricao, vencimento: d.vencimento ?? d.data, valor: d.valor, to: '/despesas' })),
+  ].sort((a, b) => a.vencimento.localeCompare(b.vencimento))
   const estoqueBaixo = db.obras.flatMap((o) => saldosEstoque(db, o.id).filter((s) => s.abaixoDoMinimo).map((s) => ({ obra: o, s })))
   const obraDe = (id: string) => db.obras.find((o) => o.id === id)
 
@@ -94,31 +115,36 @@ export default function Home() {
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Stat
-          label="Gastos da semana"
-          icon={<HardHat className="h-4 w-4" />}
-          value={formatBRL(relatorio.totalGeral)}
-          hint={`${formatDatePt(start).slice(0, 5)} a ${formatDatePt(end).slice(0, 5)}`}
-        />
-        <Stat
           label="Saldo em caixa"
           icon={<Wallet className="h-4 w-4" />}
           value={<span className={entradas - saidas < 0 ? 'text-red-600' : ''}>{formatBRL(entradas - saidas)}</span>}
-          hint="Recebido − gasto"
+          hint="Tudo que entrou menos o que saiu"
         />
         <Stat
-          label="Próximos 30 dias"
-          icon={<Receipt className="h-4 w-4" />}
-          value={<span className="text-red-600">−{formatBRL(aPagar30)}</span>}
-          hint={<span className="text-emerald-600">+{formatBRL(aReceber30)} a receber</span>}
+          label="Resultado do mês"
+          icon={<TrendingUp className="h-4 w-4" />}
+          value={<span className={resultadoMes < 0 ? 'text-red-600' : 'text-emerald-600'}>{formatBRL(resultadoMes)}</span>}
+          hint={`Entrou ${formatBRL(entradasMes)} · saiu ${formatBRL(saidasMes)}`}
         />
-        <Stat label="Obras ativas" icon={<Building2 className="h-4 w-4" />} value={obrasAtivas.length} hint={`${db.trabalhadores.filter((t) => t.ativo).length} trabalhadores`} />
+        <Stat
+          label="A pagar em 30 dias"
+          icon={<Receipt className="h-4 w-4" />}
+          value={<span className="text-red-600">{formatBRL(aPagar30)}</span>}
+          hint={vencidosPagar > 0 ? <span className="text-red-600">{formatBRL(vencidosPagar)} já vencido</span> : 'Nada vencido'}
+        />
+        <Stat
+          label="A receber em 30 dias"
+          icon={<ArrowUpRight className="h-4 w-4" />}
+          value={<span className="text-emerald-600">{formatBRL(aReceber30)}</span>}
+          hint={`${obrasAtivas.length} obra(s) ativa(s) · ${db.trabalhadores.filter((t) => t.ativo).length} na equipe`}
+        />
       </div>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Atalho to="/lancar-dias" icon={CalendarCheck} label="Lançar diárias" />
         <Atalho to="/materiais" icon={Package} label="Lançar material" />
-        <Atalho to="/despesas" icon={Truck} label="Lançar despesa" />
-        <Atalho to="/obras" icon={Plus} label="Nova obra" />
+        <Atalho to="/despesas" icon={Receipt} label="Lançar despesa" />
+        <Atalho to="/notas" icon={FileCheck2} label="Lançar nota fiscal" />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-5">
@@ -142,6 +168,9 @@ export default function Home() {
                   const prev = avancoPrevistoObra(db, o.id)
                   const atrasada = real + 0.05 < prev
                   const gasto = movs.filter((m) => m.obraId === o.id && m.tipo === 'saida' && m.realizado).reduce((a, m) => a + m.valor, 0)
+                  const orcado = custoDiretoObra(db, o.id)
+                  const contrato = o.valorContrato ?? orcado * (1 + bdiDaObra(o))
+                  const estourou = orcado > 0 && gasto > orcado
                   return (
                     <Link key={o.id} to={`/obras/${o.id}`} className="flex items-center gap-4 py-3 group">
                       <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-500">
@@ -150,7 +179,10 @@ export default function Home() {
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center justify-between gap-2">
                           <p className="truncate text-sm font-medium text-slate-900 group-hover:text-brand-600">{o.nome}</p>
-                          <p className="shrink-0 text-xs text-slate-500 tabular">{formatBRL(gasto)}</p>
+                          <p className={`shrink-0 text-xs tabular ${estourou ? 'text-red-600 font-medium' : 'text-slate-500'}`}>
+                            {formatBRL(gasto)}
+                            {orcado > 0 ? ` de ${formatBRL(orcado)}` : contrato > 0 ? ` · contrato ${formatBRL(contrato)}` : ''}
+                          </p>
                         </div>
                         <div className="mt-1.5 flex items-center gap-2">
                           <ProgressBar value={real} tone={atrasada ? 'red' : 'amber'} />
@@ -231,7 +263,7 @@ export default function Home() {
                 {contasVencidas.slice(0, 3).map((l) => (
                   <Pendencia
                     key={l.id}
-                    to="/financeiro"
+                    to={l.to}
                     icon={Receipt}
                     tom="bg-red-50 text-red-600"
                     titulo={`Vencida: ${l.descricao}`}
@@ -247,6 +279,40 @@ export default function Home() {
                     titulo={`Estoque baixo: ${s.material.nome}`}
                     detalhe={`${obra.nome} · restam ${s.saldo} ${s.material.unidade}`}
                   />
+                ))}
+              </div>
+            )}
+          </Card>
+
+          <Card className="p-5">
+            <SectionTitle
+              action={
+                <Link to="/notas" className="text-xs font-medium text-brand-600 hover:underline">
+                  {notasMes.length} nota(s) no mês
+                </Link>
+              }
+            >
+              Para onde foi o dinheiro no mês
+            </SectionTitle>
+            {porCategoria.length === 0 ? (
+              <p className="py-6 text-center text-sm text-slate-500">Nenhum gasto lançado neste mês.</p>
+            ) : (
+              <div className="space-y-3">
+                <div className="flex h-3 overflow-hidden rounded-full bg-slate-100">
+                  {porCategoria.map((c, i) => (
+                    <div key={c.label} className={CORES[i % CORES.length]} style={{ width: `${(c.v / saidasMes) * 100}%` }} title={`${c.label} ${formatBRL(c.v)}`} />
+                  ))}
+                </div>
+                {porCategoria.map((c, i) => (
+                  <div key={c.label} className="flex justify-between text-sm">
+                    <span className="flex items-center gap-2 text-slate-600">
+                      <span className={`h-2 w-2 rounded-full ${CORES[i % CORES.length]}`} />
+                      {c.label}
+                    </span>
+                    <span className="font-medium text-slate-900 tabular">
+                      {formatBRL(c.v)} <span className="text-xs font-normal text-slate-400">{Math.round((c.v / saidasMes) * 100)}%</span>
+                    </span>
+                  </div>
                 ))}
               </div>
             )}
