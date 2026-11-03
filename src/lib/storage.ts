@@ -1,26 +1,14 @@
-import { generateId } from './id'
 import type { Database } from './types'
 
 const STORAGE_KEY = 'obra360:db:v1'
 
+/** Banco vazio: cada empresa começa sem dados de exemplo de outra. */
 function seedDatabase(): Database {
-  const obraNomes = ['Fazenda Paraíso', 'Fazenda Alto do Cruzeiro', 'Casa', 'Fazenda de Seu Jorge']
-  const fornecedorNomes: { nome: string; cidade: string }[] = [
-    { nome: 'Canteiro de Obras', cidade: 'Coração de Maria' },
-    { nome: 'Gabriel Material de Construção', cidade: '' },
-    { nome: 'Outlet das Tintas', cidade: 'Conceição do Jacuípe' },
-    { nome: 'Cerqueira Alves', cidade: 'Coração de Maria' },
-  ]
-
   return {
+    clientes: [],
     trabalhadores: [],
-    obras: obraNomes.map((nome) => ({ id: generateId(), nome, ativo: true })),
-    fornecedores: fornecedorNomes.map((f) => ({
-      id: generateId(),
-      nome: f.nome,
-      cidade: f.cidade || undefined,
-      ativo: true,
-    })),
+    obras: [],
+    fornecedores: [],
     registrosDia: [],
     comprasMaterial: [],
     despesas: [],
@@ -47,6 +35,7 @@ export function loadDatabase(): Database {
     }
     const parsed = JSON.parse(raw) as Partial<Database>
     return {
+      clientes: parsed.clientes ?? [],
       trabalhadores: parsed.trabalhadores ?? [],
       obras: parsed.obras ?? [],
       fornecedores: parsed.fornecedores ?? [],

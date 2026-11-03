@@ -3,7 +3,8 @@ import { useState } from 'react'
 import { useStore } from '../../lib/store'
 import { FUNCOES_SUGERIDAS, type FormaPagamento, type Trabalhador } from '../../lib/types'
 import { formatBRL, parseMoneyInput } from '../../lib/money'
-import { Button, Card, EmptyState, Field, Input, Select } from '../../components/ui'
+import { mascaraDocumento, mascaraTelefone } from '../../lib/formatos'
+import { Button, Card, EmptyState, Field, Input, Select, TextArea } from '../../components/ui'
 
 interface FormState {
   nome: string
@@ -11,9 +12,25 @@ interface FormState {
   valorDiaria: string
   formaPagamento: FormaPagamento
   chavePix: string
+  cpf: string
+  telefone: string
+  cidade: string
+  dataAdmissao: string
+  observacao: string
 }
 
-const FORM_VAZIO: FormState = { nome: '', funcao: '', valorDiaria: '', formaPagamento: 'pix', chavePix: '' }
+const FORM_VAZIO: FormState = {
+  nome: '',
+  funcao: '',
+  valorDiaria: '',
+  formaPagamento: 'pix',
+  chavePix: '',
+  cpf: '',
+  telefone: '',
+  cidade: '',
+  dataAdmissao: '',
+  observacao: '',
+}
 
 export default function TrabalhadoresTab() {
   const { db, addTrabalhador, updateTrabalhador, removeTrabalhador } = useStore()
@@ -35,6 +52,11 @@ export default function TrabalhadoresTab() {
       valorDiaria: String(t.valorDiaria).replace('.', ','),
       formaPagamento: t.formaPagamento,
       chavePix: t.chavePix ?? '',
+      cpf: t.cpf ?? '',
+      telefone: t.telefone ?? '',
+      cidade: t.cidade ?? '',
+      dataAdmissao: t.dataAdmissao ?? '',
+      observacao: t.observacao ?? '',
     })
     setMostrarForm(true)
   }
@@ -47,6 +69,11 @@ export default function TrabalhadoresTab() {
       valorDiaria: parseMoneyInput(form.valorDiaria),
       formaPagamento: form.formaPagamento,
       chavePix: form.chavePix.trim() || undefined,
+      cpf: form.cpf.trim() || undefined,
+      telefone: form.telefone.trim() || undefined,
+      cidade: form.cidade.trim() || undefined,
+      dataAdmissao: form.dataAdmissao || undefined,
+      observacao: form.observacao.trim() || undefined,
       ativo: true,
     }
     if (editandoId) {
@@ -107,6 +134,23 @@ export default function TrabalhadoresTab() {
               <Input value={form.chavePix} onChange={(e) => setForm({ ...form, chavePix: e.target.value })} placeholder="CPF, telefone, e-mail..." />
             </Field>
           )}
+          <div className="grid grid-cols-2 gap-2">
+            <Field label="CPF">
+              <Input value={form.cpf} onChange={(e) => setForm({ ...form, cpf: mascaraDocumento(e.target.value).slice(0, 14) })} inputMode="numeric" />
+            </Field>
+            <Field label="Telefone / WhatsApp">
+              <Input value={form.telefone} onChange={(e) => setForm({ ...form, telefone: mascaraTelefone(e.target.value) })} inputMode="tel" />
+            </Field>
+            <Field label="Cidade">
+              <Input value={form.cidade} onChange={(e) => setForm({ ...form, cidade: e.target.value })} />
+            </Field>
+            <Field label="Início na equipe">
+              <Input type="date" value={form.dataAdmissao} onChange={(e) => setForm({ ...form, dataAdmissao: e.target.value })} />
+            </Field>
+          </div>
+          <Field label="Observações">
+            <TextArea value={form.observacao} onChange={(e) => setForm({ ...form, observacao: e.target.value })} />
+          </Field>
           <div className="flex gap-2 pt-1">
             <Button onClick={salvar} className="flex-1">
               Salvar
@@ -126,7 +170,7 @@ export default function TrabalhadoresTab() {
             <div className="min-w-0">
               <p className="font-semibold text-slate-800 truncate">{t.nome}</p>
               <p className="text-xs text-slate-500">
-                {t.funcao} · {formatBRL(t.valorDiaria)}/dia · {t.formaPagamento === 'pix' ? 'PIX' : 'Dinheiro'}
+                {[t.funcao, `${formatBRL(t.valorDiaria)}/dia`, t.formaPagamento === 'pix' ? 'PIX' : 'Dinheiro', t.telefone, t.cidade].filter(Boolean).join(' · ')}
               </p>
             </div>
             <div className="flex gap-1 shrink-0">
@@ -136,6 +180,11 @@ export default function TrabalhadoresTab() {
               <Button
                 variant="ghost"
                 onClick={() => {
+                  const usos = db.registrosDia.filter((r) => r.trabalhadorId === t.id).length + db.pagamentosTarefa.filter((p) => p.trabalhadorId === t.id).length
+                  if (usos) {
+                    alert(`${t.nome} tem ${usos} diária(s) ou pagamento(s) lançado(s) e não pode ser removido, para não perder o histórico.`)
+                    return
+                  }
                   if (confirm(`Remover ${t.nome}?`)) removeTrabalhador(t.id)
                 }}
                 className="px-2"

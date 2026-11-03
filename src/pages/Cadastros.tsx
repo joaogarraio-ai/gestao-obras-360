@@ -3,21 +3,23 @@ import { PageTitle } from '../components/ui'
 import TrabalhadoresTab from './cadastros/TrabalhadoresTab'
 import ObrasTab from './cadastros/ObrasTab'
 import FornecedoresTab from './cadastros/FornecedoresTab'
+import ClientesTab from './cadastros/ClientesTab'
 
 const ABAS = [
-  { id: 'trabalhadores', label: 'Trabalhadores' },
   { id: 'obras', label: 'Obras' },
+  { id: 'clientes', label: 'Clientes' },
+  { id: 'trabalhadores', label: 'Equipe' },
   { id: 'fornecedores', label: 'Fornecedores' },
 ] as const
 
 type AbaId = (typeof ABAS)[number]['id']
 
 export default function Cadastros() {
-  const [aba, setAba] = useState<AbaId>('trabalhadores')
+  const [aba, setAba] = useState<AbaId>('obras')
 
   return (
     <div>
-      <PageTitle title="Cadastros" subtitle="Trabalhadores, obras e fornecedores" />
+      <PageTitle title="Cadastros" subtitle="Obras, clientes, equipe e fornecedores" />
 
       <div className="flex gap-1 mb-4 bg-slate-100 rounded-lg p-1">
         {ABAS.map((a) => (
@@ -36,6 +38,7 @@ export default function Cadastros() {
       {aba === 'trabalhadores' && <TrabalhadoresTab />}
       {aba === 'obras' && <ObrasTab />}
       {aba === 'fornecedores' && <FornecedoresTab />}
+      {aba === 'clientes' && <ClientesTab />}
     </div>
   )
 }

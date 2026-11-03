@@ -9,14 +9,59 @@ export interface Trabalhador {
   chavePix?: string
   ativo: boolean
   observacao?: string
+  cpf?: string
+  telefone?: string
+  cidade?: string
+  dataAdmissao?: string // yyyy-mm-dd
 }
 
-export interface Obra {
+/** Endereço no padrão brasileiro (preenchido pelo CEP quando possível). */
+export interface Endereco {
+  cep?: string
+  logradouro?: string
+  numero?: string
+  complemento?: string
+  bairro?: string
+  cidade?: string
+  uf?: string
+}
+
+export type TipoPessoa = 'pf' | 'pj'
+
+export interface Cliente extends Endereco {
+  id: string
+  nome: string
+  tipoPessoa: TipoPessoa
+  /** CPF ou CNPJ. */
+  documento?: string
+  telefone?: string
+  email?: string
+  contato?: string
+  observacao?: string
+  ativo: boolean
+}
+
+export type TipoObra = 'residencial' | 'comercial' | 'industrial' | 'reforma' | 'infraestrutura' | 'rural' | 'outra'
+export type StatusObra = 'orcamento' | 'andamento' | 'paralisada' | 'concluida'
+
+export interface Obra extends Endereco {
   id: string
   nome: string
   ativo: boolean
+  codigo?: string
+  clienteId?: string
+  /** Nome do cliente digitado antes do cadastro de clientes existir. */
   cliente?: string
+  /** Endereço livre antigo; os campos novos (logradouro, cidade...) vêm do tipo Endereco. */
   endereco?: string
+  tipo?: TipoObra
+  status?: StatusObra
+  areaConstruida?: number // m²
+  responsavelTecnico?: string
+  registroProfissional?: string // CREA / CAU
+  art?: string // ART / RRT
+  alvara?: string
+  observacao?: string
   dataInicio?: string // yyyy-mm-dd
   dataFim?: string // yyyy-mm-dd
   /** Valor do contrato com o cliente (receita prevista). */
@@ -35,11 +80,20 @@ export interface ComposicaoBDI {
   tributos: number
 }
 
-export interface Fornecedor {
+export type CategoriaFornecedor = 'material' | 'servico' | 'equipamento' | 'outro'
+
+export interface Fornecedor extends Endereco {
   id: string
   nome: string
-  cidade?: string
   ativo: boolean
+  categoria?: CategoriaFornecedor
+  tipoPessoa?: TipoPessoa
+  documento?: string // CPF ou CNPJ
+  telefone?: string
+  email?: string
+  contato?: string
+  chavePix?: string
+  observacao?: string
 }
 
 export type StatusDia = 'dia_completo' | 'meio_dia' | 'falta'
@@ -222,6 +276,7 @@ export interface MovimentoEstoque {
 }
 
 export interface Database {
+  clientes: Cliente[]
   trabalhadores: Trabalhador[]
   obras: Obra[]
   fornecedores: Fornecedor[]
@@ -242,6 +297,7 @@ export interface Database {
 
 /** Coleções com CRUD genérico no store. */
 export type ColecaoGenerica =
+  | 'clientes'
   | 'etapas'
   | 'itensOrcamento'
   | 'solicitacoesCompra'
@@ -251,6 +307,32 @@ export type ColecaoGenerica =
   | 'diarios'
   | 'materiaisEstoque'
   | 'movimentosEstoque'
+
+export const TIPO_OBRA_LABEL: Record<TipoObra, string> = {
+  residencial: 'Residencial',
+  comercial: 'Comercial',
+  industrial: 'Industrial',
+  reforma: 'Reforma',
+  infraestrutura: 'Infraestrutura',
+  rural: 'Rural',
+  outra: 'Outra',
+}
+
+export const STATUS_OBRA_LABEL: Record<StatusObra, string> = {
+  orcamento: 'Em orçamento',
+  andamento: 'Em andamento',
+  paralisada: 'Paralisada',
+  concluida: 'Concluída',
+}
+
+export const CATEGORIA_FORNECEDOR_LABEL: Record<CategoriaFornecedor, string> = {
+  material: 'Material de construção',
+  servico: 'Serviço / mão de obra',
+  equipamento: 'Equipamento / locação',
+  outro: 'Outro',
+}
+
+export const UFS = ['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'] as const
 
 export const CATEGORIA_LABEL: Record<CategoriaCusto, string> = {
   material: 'Material',
