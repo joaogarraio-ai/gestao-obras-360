@@ -1,8 +1,9 @@
-import { Pencil, Trash2 } from 'lucide-react'
+import { Download, Pencil, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { useStore } from '../lib/store'
 import { toISODate, formatDatePt } from '../lib/dates'
 import { formatBRL, parseMoneyInput } from '../lib/money'
+import { baixarPlanilha } from '../lib/exportar'
 import type { CompraMaterial } from '../lib/types'
 import { Button, Card, EmptyState, Field, Input, PageTitle, Select } from '../components/ui'
 
@@ -78,7 +79,33 @@ export default function Materiais() {
 
   return (
     <div>
-      <PageTitle title="Materiais" subtitle="Notas fiscais de compras de material" />
+      <PageTitle
+        title="Materiais"
+        subtitle="Notas fiscais de compras de material"
+        actions={
+          comprasOrdenadas.length > 0 && (
+            <Button
+              variant="secondary"
+              onClick={() =>
+                baixarPlanilha(
+                  `compras-de-material-${toISODate(new Date())}`,
+                  ['Data', 'Obra', 'Fornecedor', 'Descrição', 'Nº da nota', 'Valor (R$)'],
+                  [...comprasOrdenadas].reverse().map((c) => [
+                    formatDatePt(c.data),
+                    db.obras.find((o) => o.id === c.obraId)?.nome,
+                    db.fornecedores.find((f) => f.id === c.fornecedorId)?.nome,
+                    c.descricao,
+                    c.numeroNota,
+                    c.valor,
+                  ]),
+                )
+              }
+            >
+              <Download className="h-4 w-4" /> Excel
+            </Button>
+          )
+        }
+      />
 
       {semCadastros && <EmptyState text="Cadastre ao menos um fornecedor e uma obra em Cadastros para lançar compras." />}
 
