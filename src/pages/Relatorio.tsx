@@ -214,7 +214,7 @@ export default function Relatorio() {
                   <div>
                     <p className="text-slate-800">{d.descricao}</p>
                     <p className="text-xs text-slate-500">
-                      {formatDatePt(d.data)}
+                      {formatDatePt(d.data)} · {d.tipo}
                       {d.obraNome ? ` · ${d.obraNome}` : ''}
                     </p>
                   </div>

@@ -1,5 +1,5 @@
 import { isBetween } from './dates'
-import { STATUS_DIA_FRACAO } from './types'
+import { STATUS_DIA_FRACAO, TIPO_DESPESA_LABEL } from './types'
 import type { Database, FormaPagamento } from './types'
 
 export interface LinhaTarefa {
@@ -177,7 +177,7 @@ export function gerarRelatorioSemanal(db: Database, start: string, end: string):
     .sort((a, b) => a.data.localeCompare(b.data))
     .map((d) => ({
       data: d.data,
-      tipo: d.tipo,
+      tipo: TIPO_DESPESA_LABEL[d.tipo] ?? d.tipo,
       obraNome: d.obraId ? obraNome(d.obraId) : undefined,
       descricao: d.descricao,
       valor: d.valor,
