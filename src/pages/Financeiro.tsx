@@ -1,4 +1,4 @@
-import { Trash2 } from 'lucide-react'
+import { Download, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { useStore } from '../lib/store'
 import { mesesEntre, movimentos } from '../lib/gestao'
@@ -7,6 +7,7 @@ import { formatDatePt, toISODate } from '../lib/dates'
 import { formatBRL, parseMoneyInput } from '../lib/money'
 import { CATEGORIA_LABEL } from '../lib/types'
 import type { CategoriaCusto, TipoLancamento } from '../lib/types'
+import { baixarPlanilha } from '../lib/exportar'
 import { Badge, Button, Card, EmptyState, Field, Input, PageTitle, Select, Stat, Tabs } from '../components/ui'
 
 const ABAS = [
@@ -28,6 +29,24 @@ export default function Financeiro() {
   const aReceber = todos.filter((m) => m.tipo === 'entrada' && !m.realizado).reduce((a, m) => a + m.valor, 0)
   const aPagar = todos.filter((m) => m.tipo === 'saida' && !m.realizado).reduce((a, m) => a + m.valor, 0)
 
+  function exportar() {
+    const nomeObra = (id?: string) => db.obras.find((o) => o.id === id)?.nome ?? ''
+    const lista = [...todos].sort((a, b) => a.data.localeCompare(b.data))
+    baixarPlanilha(
+      `financeiro-${obraId ? nomeObra(obraId) : 'todas-as-obras'}-${hoje}`,
+      ['Data', 'Obra', 'Tipo', 'Origem', 'Descrição', 'Valor (R$)', 'Situação'],
+      lista.map((m) => [
+        formatDatePt(m.data),
+        nomeObra(m.obraId),
+        m.tipo === 'entrada' ? 'Entrada' : 'Saída',
+        m.origem,
+        m.descricao,
+        m.tipo === 'entrada' ? m.valor : -m.valor,
+        m.realizado ? 'Realizado' : m.tipo === 'entrada' ? 'A receber' : 'A pagar',
+      ]),
+    )
+  }
+
   function salvar() {
     if (!form || !form.descricao.trim()) return
     addItem('lancamentos', {
@@ -45,7 +64,15 @@ export default function Financeiro() {
 
   return (
     <div>
-      <PageTitle title="Financeiro" subtitle="Tudo que entra e sai, por obra: diárias, materiais, despesas, medições e contas" />
+      <PageTitle
+        title="Financeiro"
+        subtitle="Tudo que entra e sai, por obra: diárias, materiais, despesas, medições e contas"
+        actions={
+          <Button variant="secondary" onClick={exportar} disabled={todos.length === 0}>
+            <Download className="h-4 w-4" /> Excel
+          </Button>
+        }
+      />
 
       <Select value={obraId} onChange={(e) => setObraId(e.target.value)} className="mb-3">
         <option value="">Todas as obras</option>

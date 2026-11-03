@@ -1,7 +1,7 @@
 import { addDays, toISODate } from './dates'
 import { generateId } from './id'
 import { BDI_PADRAO } from './types'
-import type { CategoriaCusto, Database, Etapa, ItemOrcamento } from './types'
+import type { CategoriaCusto, Database, Etapa, Fornecedor, ItemOrcamento } from './types'
 
 /** Cria uma obra completa de demonstração (orçamento, cronograma, compras, medições, financeiro e diário). */
 export function adicionarObraExemplo(db: Database): Database {
@@ -64,7 +64,20 @@ export function adicionarObraExemplo(db: Database): Database {
     categoria,
   }))
 
-  const fornecedorId = db.fornecedores[0]?.id
+  // empresa nova não tem fornecedores: cria alguns de demonstração para as compras e cotações do exemplo
+  const fornecedoresDemo: Fornecedor[] =
+    db.fornecedores.length > 0
+      ? []
+      : ['Depósito Central (demonstração)', 'Casa do Construtor (demonstração)', 'Aço Forte (demonstração)'].map((nome, i) => ({
+          id: generateId(),
+          nome,
+          ativo: true,
+          categoria: 'material' as const,
+          cidade: 'Feira de Santana',
+          uf: 'BA',
+          telefone: `(75) 9900${i}-000${i}`,
+        }))
+  const fornecedorId = db.fornecedores[0]?.id ?? fornecedoresDemo[0]?.id
   const compra1 = generateId()
   const compra2 = generateId()
   const solicitacao1 = generateId()
@@ -79,6 +92,7 @@ export function adicionarObraExemplo(db: Database): Database {
 
   return {
     ...db,
+    fornecedores: [...db.fornecedores, ...fornecedoresDemo],
     obras: [
       ...db.obras,
       {

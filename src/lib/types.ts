@@ -170,6 +170,17 @@ export interface ItemOrcamento {
   categoria: CategoriaCusto
 }
 
+/** Preço que um fornecedor passou para um pedido de compra. */
+export interface Cotacao {
+  id: string
+  fornecedorId: string
+  data: string // yyyy-mm-dd
+  valor: number
+  prazoEntregaDias?: number
+  condicaoPagamento?: string
+  observacao?: string
+}
+
 export type StatusSolicitacao = 'pendente' | 'aprovada' | 'rejeitada' | 'comprada'
 
 export interface SolicitacaoCompra {
@@ -188,6 +199,8 @@ export interface SolicitacaoCompra {
   dataDecisao?: string
   motivoRejeicao?: string
   compraId?: string
+  cotacoes?: Cotacao[]
+  cotacaoEscolhidaId?: string
 }
 
 /** Contrato de empreitada com um empreiteiro, pago por medições. */

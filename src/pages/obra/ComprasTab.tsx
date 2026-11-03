@@ -6,6 +6,7 @@ import { formatBRL, formatNumero, parseMoneyInput } from '../../lib/money'
 import { STATUS_SOLICITACAO_LABEL } from '../../lib/types'
 import type { Obra, SolicitacaoCompra, StatusSolicitacao } from '../../lib/types'
 import { Badge, Button, Card, EmptyState, Field, Input, Select } from '../../components/ui'
+import Cotacoes from './Cotacoes'
 
 const TONE: Record<StatusSolicitacao, 'amber' | 'green' | 'red' | 'default'> = {
   pendente: 'amber',
@@ -18,6 +19,7 @@ export default function ComprasTab({ obra }: { obra: Obra }) {
   const { db, addItem, updateItem, removeItem, addCompraMaterial } = useStore()
   const etapas = etapasDaObra(db, obra.id)
   const [mostrarForm, setMostrarForm] = useState(false)
+  const [cotando, setCotando] = useState<string | null>(null)
   const [comprando, setComprando] = useState<{ s: SolicitacaoCompra; valor: string; nota: string; fornecedorId: string; entrarEstoque: boolean } | null>(null)
   const formVazio = {
     descricao: '',
@@ -241,6 +243,15 @@ export default function ComprasTab({ obra }: { obra: Obra }) {
                       <Badge tone={TONE[s.status]}>{STATUS_SOLICITACAO_LABEL[s.status]}</Badge>
                     </div>
                   </div>
+                  {(s.cotacoes?.length || cotando === s.id) && (s.status !== 'rejeitada' || s.cotacoes?.length) ? (
+                    <Cotacoes s={s} editavel={s.status === 'pendente' || s.status === 'aprovada'} />
+                  ) : (
+                    (s.status === 'pendente' || s.status === 'aprovada') && (
+                      <button className="mt-2 text-xs font-medium text-brand-700" onClick={() => setCotando(s.id)}>
+                        + Cotar preços com fornecedores
+                      </button>
+                    )
+                  )}
                   {s.status === 'pendente' && (
                     <div className="flex gap-2 mt-2">
                       <Button className="flex-1" onClick={() => decidir(s, true)}>
