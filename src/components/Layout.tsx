@@ -16,6 +16,7 @@ import {
   Smartphone,
   TriangleAlert,
   Receipt,
+  FileCheck2,
   UserCircle,
   Wallet,
   X,
@@ -38,6 +39,7 @@ const GRUPOS: { titulo: string; itens: ItemNav[] }[] = [
       { to: '/lancar-dias', label: 'Diárias e tarefas', icon: CalendarCheck },
       { to: '/materiais', label: 'Materiais', icon: Package },
       { to: '/despesas', label: 'Despesas', icon: Receipt },
+      { to: '/notas', label: 'Notas fiscais', icon: FileCheck2 },
     ],
   },
   {

@@ -1,9 +1,12 @@
-import { Download, Pencil, Trash2 } from 'lucide-react'
+import { Download, Paperclip, Pencil, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { useStore } from '../lib/store'
 import { toISODate, formatDatePt } from '../lib/dates'
 import { formatBRL, parseMoneyInput } from '../lib/money'
 import { baixarPlanilha } from '../lib/exportar'
+import { generateId } from '../lib/id'
+import { removerAnexosDe } from '../lib/anexos'
+import Anexos from '../components/Anexos'
 import type { CompraMaterial } from '../lib/types'
 import { Button, Card, EmptyState, Field, Input, PageTitle, Select } from '../components/ui'
 
@@ -20,6 +23,8 @@ export default function Materiais() {
   const { db, addCompraMaterial, updateCompraMaterial, removeCompraMaterial } = useStore()
   const [mostrarForm, setMostrarForm] = useState(false)
   const [editandoId, setEditandoId] = useState<string | null>(null)
+  const [idForm, setIdForm] = useState(() => generateId())
+  const [comprovante, setComprovante] = useState<string | null>(null)
 
   const formVazio: FormState = {
     data: toISODate(new Date()),
@@ -33,12 +38,14 @@ export default function Materiais() {
 
   function iniciarNovo() {
     setEditandoId(null)
+    setIdForm(generateId())
     setForm(formVazio)
     setMostrarForm(true)
   }
 
   function iniciarEdicao(c: CompraMaterial) {
     setEditandoId(c.id)
+    setIdForm(c.id)
     setForm({
       data: c.data,
       fornecedorId: c.fornecedorId,
@@ -63,7 +70,7 @@ export default function Materiais() {
     if (editandoId) {
       updateCompraMaterial(editandoId, dados)
     } else {
-      addCompraMaterial(dados)
+      addCompraMaterial({ ...dados, id: idForm })
     }
     setMostrarForm(false)
     setEditandoId(null)
@@ -90,14 +97,16 @@ export default function Materiais() {
                 baixarPlanilha(
                   `compras-de-material-${toISODate(new Date())}`,
                   ['Data', 'Obra', 'Fornecedor', 'Descrição', 'Nº da nota', 'Valor (R$)'],
-                  [...comprasOrdenadas].reverse().map((c) => [
-                    formatDatePt(c.data),
-                    db.obras.find((o) => o.id === c.obraId)?.nome,
-                    db.fornecedores.find((f) => f.id === c.fornecedorId)?.nome,
-                    c.descricao,
-                    c.numeroNota,
-                    c.valor,
-                  ]),
+                  [...comprasOrdenadas]
+                    .reverse()
+                    .map((c) => [
+                      formatDatePt(c.data),
+                      db.obras.find((o) => o.id === c.obraId)?.nome,
+                      db.fornecedores.find((f) => f.id === c.fornecedorId)?.nome,
+                      c.descricao,
+                      c.numeroNota,
+                      c.valor,
+                    ]),
                 )
               }
             >
@@ -139,11 +148,7 @@ export default function Materiais() {
             </Select>
           </Field>
           <Field label="Descrição do material">
-            <Input
-              value={form.descricao}
-              onChange={(e) => setForm({ ...form, descricao: e.target.value })}
-              placeholder="Ex: 20 sacos de cimento"
-            />
+            <Input value={form.descricao} onChange={(e) => setForm({ ...form, descricao: e.target.value })} placeholder="Ex: 20 sacos de cimento" />
           </Field>
           <Field label="Valor (R$)">
             <Input value={form.valor} onChange={(e) => setForm({ ...form, valor: e.target.value })} placeholder="Ex: 250,00" inputMode="decimal" />
@@ -151,11 +156,18 @@ export default function Materiais() {
           <Field label="Nº da nota (opcional)">
             <Input value={form.numeroNota} onChange={(e) => setForm({ ...form, numeroNota: e.target.value })} placeholder="Ex: 1234" />
           </Field>
+          <Anexos refColecao="comprasMaterial" refId={idForm} titulo="Foto da nota ou do cupom" />
           <div className="flex gap-2 pt-1">
             <Button onClick={salvar} className="flex-1">
               Salvar
             </Button>
-            <Button variant="secondary" onClick={() => setMostrarForm(false)}>
+            <Button
+              variant="secondary"
+              onClick={() => {
+                if (!editandoId) void removerAnexosDe('comprasMaterial', idForm)
+                setMostrarForm(false)
+              }}
+            >
               Cancelar
             </Button>
           </div>
@@ -172,29 +184,42 @@ export default function Materiais() {
 
       <div className="space-y-2">
         {comprasOrdenadas.map((c) => (
-          <Card key={c.id} className="p-3 flex items-center justify-between gap-2">
-            <div className="min-w-0">
-              <p className="font-semibold text-slate-800 truncate">{c.descricao}</p>
-              <p className="text-xs text-slate-500 truncate">
-                {formatDatePt(c.data)} · {nomeFornecedor(c.fornecedorId)} · {nomeObra(c.obraId)}
-                {c.numeroNota ? ` · NF ${c.numeroNota}` : ''}
-              </p>
+          <Card key={c.id} className="p-3">
+            <div className="flex items-center justify-between gap-2">
+              <div className="min-w-0">
+                <p className="font-semibold text-slate-800 truncate">{c.descricao}</p>
+                <p className="text-xs text-slate-500 truncate">
+                  {formatDatePt(c.data)} · {nomeFornecedor(c.fornecedorId)} · {nomeObra(c.obraId)}
+                  {c.numeroNota ? ` · NF ${c.numeroNota}` : ''}
+                </p>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <p className="font-semibold text-slate-800 whitespace-nowrap">{formatBRL(c.valor)}</p>
+                <Button variant="ghost" onClick={() => setComprovante(comprovante === c.id ? null : c.id)} className="px-2" aria-label="Foto da nota">
+                  <Paperclip className="h-4 w-4" />
+                </Button>
+                <Button variant="ghost" onClick={() => iniciarEdicao(c)} className="px-2">
+                  <Pencil className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  onClick={() => {
+                    if (confirm('Remover esta compra?')) {
+                      removeCompraMaterial(c.id)
+                      void removerAnexosDe('comprasMaterial', c.id)
+                    }
+                  }}
+                  className="px-2"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
-            <div className="flex items-center gap-2 shrink-0">
-              <p className="font-semibold text-slate-800 whitespace-nowrap">{formatBRL(c.valor)}</p>
-              <Button variant="ghost" onClick={() => iniciarEdicao(c)} className="px-2">
-                <Pencil className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                onClick={() => {
-                  if (confirm('Remover esta compra?')) removeCompraMaterial(c.id)
-                }}
-                className="px-2"
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </div>
+            {comprovante === c.id && (
+              <div className="mt-2 border-t border-slate-100 pt-2">
+                <Anexos refColecao="comprasMaterial" refId={c.id} titulo="Foto da nota" />
+              </div>
+            )}
           </Card>
         ))}
       </div>

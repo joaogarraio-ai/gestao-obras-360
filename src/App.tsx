@@ -4,6 +4,7 @@ import Home from './pages/Home'
 import LancarDias from './pages/LancarDias'
 import Materiais from './pages/Materiais'
 import Despesas from './pages/Despesas'
+import Notas from './pages/Notas'
 import Relatorio from './pages/Relatorio'
 import Cadastros from './pages/Cadastros'
 import Obras from './pages/Obras'
@@ -23,6 +24,7 @@ export default function App() {
           <Route path="/lancar-dias" element={<LancarDias />} />
           <Route path="/materiais" element={<Materiais />} />
           <Route path="/despesas" element={<Despesas />} />
+          <Route path="/notas" element={<Notas />} />
           <Route path="/relatorio" element={<Relatorio />} />
           <Route path="/cadastros" element={<Cadastros />} />
           <Route path="/obras" element={<Obras />} />
