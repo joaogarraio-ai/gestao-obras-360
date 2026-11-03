@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import type { RealtimeChannel, Session } from '@supabase/supabase-js'
+import { COLECAO_ANEXOS, definirEmpresaAnexos } from './anexos'
 import { CAMPOS_EMPRESA, empresaLiberada, supabase, type Empresa } from './supabase'
 import { useStore } from './store'
 import type { Database } from './types'
@@ -23,6 +24,7 @@ const COLECOES = [
   'diarios',
   'materiaisEstoque',
   'movimentosEstoque',
+  'notasFiscais',
 ] as const satisfies readonly (keyof Database)[]
 
 type Colecao = (typeof COLECOES)[number]
@@ -138,6 +140,7 @@ export function SyncProvider({ children }: { children: ReactNode }) {
   const [mestre, setMestre] = useState(false)
   const [licenca, setLicenca] = useState<SyncValue['licenca']>('verificando')
   const empresaId = empresa?.id
+  useEffect(() => definirEmpresaAnexos(empresaId ?? null), [empresaId])
 
   const dbRef = useRef(db)
   useEffect(() => {
@@ -268,6 +271,7 @@ export function SyncProvider({ children }: { children: ReactNode }) {
           .from('registros')
           .select('colecao,id,dados,excluido')
           .eq('empresa_id', empresaId)
+          .neq('colecao', COLECAO_ANEXOS) // fotos e PDFs são baixados só quando abertos
           .order('colecao')
           .order('id')
           .range(de, de + 999)

@@ -31,11 +31,11 @@ interface StoreValue {
   setRegistroDia: (r: Omit<RegistroDia, 'id'>) => void
   removeRegistroDia: (id: string) => void
 
-  addCompraMaterial: (c: Omit<CompraMaterial, 'id'>) => CompraMaterial
+  addCompraMaterial: (c: Omit<CompraMaterial, 'id'> & { id?: string }) => CompraMaterial
   updateCompraMaterial: (id: string, patch: Partial<Omit<CompraMaterial, 'id'>>) => void
   removeCompraMaterial: (id: string) => void
 
-  addDespesa: (d: Omit<Despesa, 'id'>) => Despesa
+  addDespesa: (d: Omit<Despesa, 'id'> & { id?: string }) => Despesa
   updateDespesa: (id: string, patch: Partial<Omit<Despesa, 'id'>>) => void
   removeDespesa: (id: string) => void
 
@@ -44,7 +44,7 @@ interface StoreValue {
   removePagamentoTarefa: (id: string) => void
 
   /** CRUD genérico para os módulos de gestão (orçamento, cronograma, compras, medições, financeiro, diário). */
-  addItem: <K extends ColecaoGenerica>(col: K, item: Omit<Database[K][number], 'id'>) => Database[K][number]
+  addItem: <K extends ColecaoGenerica>(col: K, item: Omit<Database[K][number], 'id'> & { id?: string }) => Database[K][number]
   updateItem: <K extends ColecaoGenerica>(col: K, id: string, patch: Partial<Omit<Database[K][number], 'id'>>) => void
   removeItem: (col: ColecaoGenerica, id: string) => void
   /** Substitui o banco inteiro (usado pela obra de exemplo e importação de backup). */
@@ -131,8 +131,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setDb((prev) => ({ ...prev, registrosDia: prev.registrosDia.filter((r) => r.id !== id) }))
   }, [])
 
-  const addCompraMaterial = useCallback((c: Omit<CompraMaterial, 'id'>) => {
-    const nova: CompraMaterial = { ...c, id: generateId() }
+  const addCompraMaterial = useCallback((c: Omit<CompraMaterial, 'id'> & { id?: string }) => {
+    const nova: CompraMaterial = { ...c, id: c.id ?? generateId() }
     setDb((prev) => ({ ...prev, comprasMaterial: [...prev.comprasMaterial, nova] }))
     return nova
   }, [])
@@ -148,8 +148,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setDb((prev) => ({ ...prev, comprasMaterial: prev.comprasMaterial.filter((c) => c.id !== id) }))
   }, [])
 
-  const addDespesa = useCallback((d: Omit<Despesa, 'id'>) => {
-    const nova: Despesa = { ...d, id: generateId() }
+  const addDespesa = useCallback((d: Omit<Despesa, 'id'> & { id?: string }) => {
+    const nova: Despesa = { ...d, id: d.id ?? generateId() }
     setDb((prev) => ({ ...prev, despesas: [...prev.despesas, nova] }))
     return nova
   }, [])
@@ -182,8 +182,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setDb((prev) => ({ ...prev, pagamentosTarefa: prev.pagamentosTarefa.filter((p) => p.id !== id) }))
   }, [])
 
-  const addItem = useCallback(<K extends ColecaoGenerica>(col: K, item: Omit<Database[K][number], 'id'>) => {
-    const novo = { ...item, id: generateId() } as Database[K][number]
+  const addItem = useCallback(<K extends ColecaoGenerica>(col: K, item: Omit<Database[K][number], 'id'> & { id?: string }) => {
+    const novo = { ...item, id: item.id ?? generateId() } as Database[K][number]
     setDb((prev) => ({ ...prev, [col]: [...prev[col], novo] }))
     return novo
   }, [])

@@ -1,9 +1,12 @@
-import { CheckCircle2, Download, Pencil, Search, Trash2 } from 'lucide-react'
+import { CheckCircle2, Download, Paperclip, Pencil, Search, Trash2 } from 'lucide-react'
 import { useMemo, useState, type ReactNode } from 'react'
 import { useStore } from '../lib/store'
 import { toISODate, formatDatePt } from '../lib/dates'
 import { etapasDaObra } from '../lib/gestao'
 import { baixarPlanilha } from '../lib/exportar'
+import { generateId } from '../lib/id'
+import { removerAnexosDe } from '../lib/anexos'
+import Anexos from '../components/Anexos'
 import { formatBRL, numeroParaInput, parseMoneyInput } from '../lib/money'
 import {
   FORMA_PAGAMENTO_DESPESA_LABEL,
@@ -70,6 +73,8 @@ export default function Despesas() {
   const { db, addDespesa, updateDespesa, removeDespesa } = useStore()
   const [mostrarForm, setMostrarForm] = useState(false)
   const [editandoId, setEditandoId] = useState<string | null>(null)
+  const [idForm, setIdForm] = useState(() => generateId())
+  const [comprovante, setComprovante] = useState<string | null>(null)
   const [erro, setErro] = useState<string | null>(null)
   const [periodo, setPeriodo] = useState<Periodo>('mes')
   const [filtroObra, setFiltroObra] = useState('')
@@ -98,6 +103,7 @@ export default function Despesas() {
 
   function iniciarNovo() {
     setEditandoId(null)
+    setIdForm(generateId())
     setForm(formVazio())
     setErro(null)
     setMostrarForm(true)
@@ -105,6 +111,7 @@ export default function Despesas() {
 
   function iniciarEdicao(d: Despesa) {
     setEditandoId(d.id)
+    setIdForm(d.id)
     setErro(null)
     setForm({
       data: d.data,
@@ -145,13 +152,17 @@ export default function Despesas() {
       observacao: form.observacao.trim() || undefined,
     }
     if (editandoId) updateDespesa(editandoId, dados)
-    else addDespesa(dados)
+    else addDespesa({ ...dados, id: idForm })
     setMostrarForm(false)
     setEditandoId(null)
   }
 
   function marcarPaga(d: Despesa) {
-    updateDespesa(d.id, { pago: true, data: hoje, vencimento: d.vencimento ?? d.data })
+    updateDespesa(d.id, {
+      pago: true,
+      data: hoje,
+      vencimento: d.vencimento ?? d.data,
+    })
   }
 
   const nomeObra = (id?: string) => (id ? (db.obras.find((o) => o.id === id)?.nome ?? '—') : 'Sem obra (geral)')
@@ -248,7 +259,11 @@ export default function Despesas() {
               </Field>
             </div>
             <Field label="Descrição">
-              <Input value={form.descricao} onChange={(e) => set({ descricao: e.target.value })} placeholder={`Ex: ${TIPO_DESPESA_LABEL[form.tipo]} da semana`} />
+              <Input
+                value={form.descricao}
+                onChange={(e) => set({ descricao: e.target.value })}
+                placeholder={`Ex: ${TIPO_DESPESA_LABEL[form.tipo]} da semana`}
+              />
             </Field>
           </Secao>
 
@@ -305,7 +320,14 @@ export default function Despesas() {
                 </Field>
               )}
               <Field label="Forma de pagamento">
-                <Select value={form.formaPagamento} onChange={(e) => set({ formaPagamento: e.target.value as FormaPagamentoDespesa | '' })}>
+                <Select
+                  value={form.formaPagamento}
+                  onChange={(e) =>
+                    set({
+                      formaPagamento: e.target.value as FormaPagamentoDespesa | '',
+                    })
+                  }
+                >
                   <option value="">—</option>
                   {Object.entries(FORMA_PAGAMENTO_DESPESA_LABEL).map(([v, l]) => (
                     <option key={v} value={v}>
@@ -340,12 +362,22 @@ export default function Despesas() {
             </Field>
           </Secao>
 
+          <Secao titulo="Comprovante (foto do cupom, nota ou recibo)">
+            <Anexos refColecao="despesas" refId={idForm} compacto />
+          </Secao>
+
           {erro && <p className="text-sm text-red-600">{erro}</p>}
           <div className="flex gap-2">
             <Button onClick={salvar} className="flex-1">
               {editandoId ? 'Salvar alterações' : 'Lançar despesa'}
             </Button>
-            <Button variant="secondary" onClick={() => setMostrarForm(false)}>
+            <Button
+              variant="secondary"
+              onClick={() => {
+                if (!editandoId) void removerAnexosDe('despesas', idForm)
+                setMostrarForm(false)
+              }}
+            >
               Cancelar
             </Button>
           </div>
@@ -469,13 +501,19 @@ export default function Despesas() {
                   </Button>
                 )}
                 <div className="ml-auto flex">
+                  <Button variant="ghost" onClick={() => setComprovante(comprovante === d.id ? null : d.id)} className="px-2" aria-label="Comprovante">
+                    <Paperclip className="h-4 w-4" />
+                  </Button>
                   <Button variant="ghost" onClick={() => iniciarEdicao(d)} className="px-2" aria-label="Editar">
                     <Pencil className="h-4 w-4" />
                   </Button>
                   <Button
                     variant="ghost"
                     onClick={() => {
-                      if (confirm('Remover esta despesa?')) removeDespesa(d.id)
+                      if (confirm('Remover esta despesa?')) {
+                        removeDespesa(d.id)
+                        void removerAnexosDe('despesas', d.id)
+                      }
                     }}
                     className="px-2"
                     aria-label="Remover"
@@ -484,6 +522,11 @@ export default function Despesas() {
                   </Button>
                 </div>
               </div>
+              {comprovante === d.id && (
+                <div className="mt-2 border-t border-slate-100 pt-2">
+                  <Anexos refColecao="despesas" refId={d.id} titulo="Comprovante" />
+                </div>
+              )}
             </Card>
           )
         })}

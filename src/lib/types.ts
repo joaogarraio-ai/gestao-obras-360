@@ -280,6 +280,82 @@ export interface LancamentoFinanceiro {
   pago: boolean
   dataPagamento?: string
   categoria?: CategoriaCusto
+  /** Parcela gerada por uma nota fiscal. */
+  notaId?: string
+  parcela?: string // "1/3"
+  formaPagamento?: FormaPagamentoDespesa
+  fornecedorId?: string
+  clienteId?: string
+}
+
+// ---------- Notas fiscais ----------
+
+/** entrada = nota de compra recebida; saida = nota de venda/serviço emitida para o cliente. */
+export type TipoNota = 'entrada' | 'saida'
+export type ModeloNota = 'nfe' | 'nfse' | 'nfce' | 'cte' | 'recibo' | 'outro'
+
+export interface ItemNota {
+  id: string
+  codigo?: string
+  descricao: string
+  quantidade: number
+  unidade: string
+  valorUnitario: number
+  ncm?: string
+}
+
+export interface NotaFiscal {
+  id: string
+  tipo: TipoNota
+  modelo: ModeloNota
+  numero: string
+  serie?: string
+  chaveAcesso?: string
+  dataEmissao: string // yyyy-mm-dd
+  /** Data em que a mercadoria chegou / a nota foi lançada. */
+  dataEntrada?: string
+  naturezaOperacao?: string
+  fornecedorId?: string
+  clienteId?: string
+  /** Nome e CPF/CNPJ de quem emitiu (entrada) ou de quem recebeu (saída), quando não está cadastrado. */
+  nomeParte?: string
+  documentoParte?: string
+  obraId?: string
+  etapaId?: string
+  categoria?: CategoriaCusto
+  itens: ItemNota[]
+  valorProdutos: number
+  valorServicos: number
+  desconto: number
+  frete: number
+  outrasDespesas: number
+  valorTotal: number
+  valorICMS?: number
+  valorIPI?: number
+  valorISS?: number
+  valorPisCofins?: number
+  /** INSS, IR, CSLL etc. retidos na nota de serviço. */
+  retencoes?: number
+  cancelada?: boolean
+  observacao?: string
+}
+
+export const MODELO_NOTA_LABEL: Record<ModeloNota, string> = {
+  nfe: 'NF-e (produtos)',
+  nfse: 'NFS-e (serviços)',
+  nfce: 'NFC-e (cupom)',
+  cte: 'CT-e (frete)',
+  recibo: 'Recibo',
+  outro: 'Outro documento',
+}
+
+export const MODELO_NOTA_CURTO: Record<ModeloNota, string> = {
+  nfe: 'NF-e',
+  nfse: 'NFS-e',
+  nfce: 'NFC-e',
+  cte: 'CT-e',
+  recibo: 'Recibo',
+  outro: 'Doc.',
 }
 
 export type Clima = 'sol' | 'nublado' | 'chuva'
@@ -345,6 +421,7 @@ export interface Database {
   diarios: DiarioObra[]
   materiaisEstoque: MaterialEstoque[]
   movimentosEstoque: MovimentoEstoque[]
+  notasFiscais: NotaFiscal[]
 }
 
 /** Coleções com CRUD genérico no store. */
@@ -359,6 +436,7 @@ export type ColecaoGenerica =
   | 'diarios'
   | 'materiaisEstoque'
   | 'movimentosEstoque'
+  | 'notasFiscais'
 
 export const TIPO_OBRA_LABEL: Record<TipoObra, string> = {
   residencial: 'Residencial',

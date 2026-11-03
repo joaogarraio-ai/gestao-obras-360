@@ -22,6 +22,7 @@ function seedDatabase(): Database {
     diarios: [],
     materiaisEstoque: [],
     movimentosEstoque: [],
+    notasFiscais: [],
   }
 }
 
@@ -52,6 +53,7 @@ export function loadDatabase(): Database {
       diarios: parsed.diarios ?? [],
       materiaisEstoque: parsed.materiaisEstoque ?? [],
       movimentosEstoque: parsed.movimentosEstoque ?? [],
+      notasFiscais: parsed.notasFiscais ?? [],
     }
   } catch {
     return seedDatabase()
